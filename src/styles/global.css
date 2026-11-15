@@ -1,0 +1,40 @@
+@import "tailwindcss";
+@import "./tokens.css";
+
+/* ---- Reading settings (set as data-* attributes on <html>) ---- */
+html[data-font="lexend"] { --font-body: "Lexend", "Atkinson Hyperlegible Next", sans-serif; }
+html[data-spacing="relaxed"] { --line-body: 1.8; }
+html[data-spacing="loose"] { --line-body: 2; }
+html[data-contrast="high"] {
+  --color-ink-muted: #17231F;
+  --color-ink-subtle: #2A3832;
+  --color-border: #7C9084;
+  --color-border-strong: #3E5148;
+  --color-brand-soft: #D3E6DD;
+}
+html[data-motion="reduce"] *,
+html[data-motion="reduce"] *::before,
+html[data-motion="reduce"] *::after {
+  scroll-behavior: auto !important;
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+}
+
+@layer base {
+  h1, h2, h3, h4 { font-family: var(--font-heading); letter-spacing: -0.03em; text-wrap: balance; }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  a { color: inherit; }
+  dialog { color: var(--color-ink); }
+}
+
+/* Reading line-height follows the reading setting (unlayered on purpose) */
+p, li, dd { line-height: var(--line-body); }
+
+@media print {
+  html { background: #fff; font-size: 14px; }
+  body { background: #fff; }
+}
+
+/* <main> is focused programmatically on route change; it should not show a ring. */
+main:focus { outline: none; }

@@ -1,0 +1,111 @@
+/*
+ * Sentinel design tokens (DESIGN.md v0.1).
+ * The @theme block registers tokens with Tailwind (bg-canvas, text-ink, rounded-card...)
+ * and also emits them as CSS variables. Do not add one-off colours in components:
+ * add a semantic token here first.
+ */
+@theme static {
+  --color-*: initial;
+
+  --color-canvas: #F5F6F1;
+  --color-surface: #FFFFFF;
+  --color-surface-soft: #EBEFE9;
+  --color-surface-raised: #FAFBF7;
+
+  --color-ink: #17231F;
+  --color-ink-muted: #52645C;
+  --color-ink-subtle: #66766E;
+
+  --color-border: #D7DFD8;
+  --color-border-strong: #B8C6BC;
+
+  --color-brand: #145B4B;
+  --color-brand-hover: #104538;
+  --color-brand-soft: #E4F0EA;
+  --color-signal: #D7EF72;
+  --color-signal-ink: #344510;
+
+  --color-success: #205E48;
+  --color-success-soft: #E5F2EA;
+  --color-warning: #76520D;
+  --color-warning-soft: #FBF2D7;
+  --color-danger: #923B34;
+  --color-danger-soft: #F9EAE7;
+  --color-focus: #226AD5;
+
+  --font-display: "Instrument Serif", Georgia, serif;
+  --font-heading: "Lexend", "Atkinson Hyperlegible Next", sans-serif;
+  --font-body: "Atkinson Hyperlegible Next", "Atkinson Hyperlegible", Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace;
+
+  --radius-input: 11px;
+  --radius-card: 16px;
+  --radius-panel: 22px;
+  --radius-pill: 999px;
+
+  --shadow-card: 0 8px 28px rgb(23 35 31 / 5%);
+  --shadow-popover: 0 18px 48px rgb(23 35 31 / 12%);
+}
+
+:root {
+  color-scheme: light;
+
+  --text-body: 18px;
+  --line-body: 1.6;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+  --space-24: 96px;
+
+  --content-width: 1200px;
+  --reading-width: 680px;
+  --focus-ring: 0 0 0 3px rgb(34 106 213 / 25%);
+}
+
+html {
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  /* --text-scale is driven by the in-app reading settings */
+  font-size: calc(var(--text-body) * var(--text-scale, 1));
+  line-height: var(--line-body);
+  text-rendering: optimizeLegibility;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  background: var(--color-canvas);
+  color: var(--color-ink);
+}
+
+::selection {
+  background: var(--color-signal);
+  color: var(--color-signal-ink);
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
