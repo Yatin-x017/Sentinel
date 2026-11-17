@@ -1,0 +1,65 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Atkinson Hyperlegible", ui-sans-serif, system-ui, sans-serif;
+  --color-field: #1530e6; /* the page: also the bounce light on the spider */
+  --color-deep: #000a3a; /* shadow, input text, button text */
+  --color-silk: #ffffff;
+  --color-mist: #dfe5ff; /* body text on the field */
+  --color-flag: #ffe45c; /* the one accent: "found" */
+}
+
+/* Tokens the lanyard rail expects (shadcn-style names) */
+@theme {
+  --color-background: #1530e6;
+  --color-foreground: #ffffff;
+  --color-card: #ffffff;
+  --color-card-foreground: #000a3a;
+  --color-muted: #e7ebff;
+  --color-muted-foreground: #b9c3ff;
+  --color-border: #cfd6ff;
+  --color-ring: #ffe45c;
+  --color-chart-1: #ffe45c;
+  --color-chart-2: #6fe3c1;
+  --color-chart-3: #ff8f7a;
+  --color-chart-4: #b69cff;
+  --color-chart-5: #5cc8ff;
+}
+
+/* On the page the rail uses light-on-blue; on the badge faces it flips to dark-on-white. */
+[data-slot="team-lanyard-rail"] [data-face] {
+  --color-foreground: #000a3a;
+  --color-muted-foreground: #4b5380;
+}
+
+html {
+  background: var(--color-field);
+  scroll-behavior: smooth;
+}
+body {
+  margin: 0;
+  background: var(--color-field);
+  color: var(--color-silk);
+  font-family: var(--font-sans);
+  font-size: 1.125rem; /* 18px floor: older adults, dyslexic readers */
+  line-height: 1.65;
+  letter-spacing: 0.01em;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Everything that silk may stick to is outlined, so the web has visible places to land. */
+.node {
+  border: 1.5px solid rgb(255 255 255 / 0.55);
+  background: rgb(255 255 255 / 0.04);
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-flag);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
