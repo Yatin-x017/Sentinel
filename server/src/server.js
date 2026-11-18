@@ -1,38 +1,20 @@
-require('dotenv').config()
-const mongoose = require('mongoose')
-const app = require('./app')
+import 'dotenv/config';
+import mongoose from 'mongoose';
+import app from './app.js';
 
-const PORT = Number(process.env.PORT) || 5000
-const MONGODB_URI = process.env.MONGODB_URI
+const PORT = process.env.PORT || 5000;
 
-async function start() {
-  if (!MONGODB_URI) {
-    throw new Error('MONGODB_URI environment variable is required')
+async function bootstrap() {
+  try {
+    await mongoose.connect(process.env.MONGODB_URI);
+    console.log('MongoDB connected');
+    app.listen(PORT, () => {
+      console.log(`Sentinel API listening on port ${PORT}`);
+    });
+  } catch (err) {
+    console.error('Failed to start server:', err.message);
+    process.exit(1);
   }
-
-  await mongoose.connect(MONGODB_URI)
-  console.info('Connected to MongoDB')
-
-  const server = app.listen(PORT, () => {
-    console.info(`Sentinel server listening on port ${PORT}`)
-  })
-
-  const shutdown = (signal) => {
-    console.info(`Received ${signal}, shutting down...`)
-    server.close(async () => {
-      try {
-        await mongoose.connection.close()
-      } finally {
-        process.exit(0)
-      }
-    })
-  }
-
-  process.on('SIGINT', () => shutdown('SIGINT'))
-  process.on('SIGTERM', () => shutdown('SIGTERM'))
 }
 
-start().catch((err) => {
-  console.error('Server startup failed:', err.message)
-  process.exit(1)
-})
+bootstrap();

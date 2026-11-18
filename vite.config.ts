@@ -13,4 +13,14 @@ export default defineConfig({
     },
     chunkSizeWarningLimit: 700,
   },
+  server: {
+    port: 5173,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:5001', // Match your Express PORT
+        changeOrigin: true,
+        secure: false
+      }
+    }
+  }
 })

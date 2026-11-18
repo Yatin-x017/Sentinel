@@ -1,48 +1,65 @@
-const express = require('express')
-const cors = require('cors')
+import express from 'express';
+import cors from 'cors';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
+import mongoose from 'mongoose';
+import verificationRoutes from './routes/verification.routes.js';
+import scansRoutes from './routes/scans.routes.js';
 
-const app = express()
+const app = express();
 
-const EMAIL_PATTERN = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+  process.env.CLIENT_ORIGIN
+].filter(Boolean);
 
-function redactText(value) {
-  return String(value).replace(EMAIL_PATTERN, '[REDACTED_EMAIL]')
-}
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow requests with no origin (curl, Postman) or matched origins
+    if (!origin || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error(`CORS blocked origin: ${origin}`));
+  },
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+}));
 
-function requestLogger(req, res, next) {
-  const startedAt = Date.now()
-  const safePath = redactText(req.path)
+// Preflight OPTIONS requests are already answered by the cors() middleware above.
 
-  res.on('finish', () => {
-    const durationMs = Date.now() - startedAt
-    console.info(`${req.method} ${safePath} ${res.statusCode} ${durationMs}ms`)
-  })
+// 2. Configure Helmet so it doesn't block cross-origin resource sharing
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: 'cross-origin' }
+}));
 
-  next()
-}
+app.use(express.json({ limit: '16kb' }));
 
-app.use(cors({ origin: process.env.CORS_ORIGIN || 'http://localhost:5173' }))
-app.use(express.json({ limit: '100kb' }))
-app.use(requestLogger)
+// Global abuse throttling[cite: 1]
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  standardHeaders: true,
+  legacyHeaders: false
+});
+app.use('/api', apiLimiter);
 
-// Mount feature routes as they are implemented:
-// app.use('/api/health', require('./routes/health.routes'))
-// app.use('/api/verification', require('./routes/verification.routes'))
-// app.use('/api/scans', require('./routes/scans.routes'))
+// Health endpoint (SEN-03)[cite: 1]
+app.get('/api/health', (req, res) => {
+  res.status(200).json({
+    status: 'ok',
+    db: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
+  });
+});
 
-app.use((_req, res) => {
-  res.status(404).json({ error: { code: 'not_found' } })
-})
+app.use('/api/v1/verifications', verificationRoutes);
+app.use('/api/v1/scans', scansRoutes);
 
-app.use((err, _req, res, _next) => {
-  const status = err.status || 500
-  const code = err.code || 'unknown'
+// Redacted error handler (never log req.body to avoid leaking emails/OTPs)[cite: 1]
+app.use((err, req, res, _next) => {
+  console.error(`[ERROR] ${req.method} ${req.path} -> ${err.message}`);
+  res.status(500).json({ error: 'INTERNAL_ERROR', message: 'An unexpected server error occurred.' });
+});
 
-  if (status >= 500) {
-    console.error(redactText(err.message || 'Unhandled server error'))
-  }
-
-  res.status(status).json({ error: { code } })
-})
-
-module.exports = app
+export default app;
