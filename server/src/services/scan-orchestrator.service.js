@@ -40,10 +40,11 @@ export async function runScanPipeline(normalizedEmail) {
   await Promise.allSettled(
     ADAPTERS.map(async (adapter) => {
       const start = Date.now();
+      let timeoutId;
       try {
-        const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Provider timeout')), ADAPTER_TIMEOUT_MS)
-        );
+        const timeoutPromise = new Promise((_, reject) => {
+          timeoutId = setTimeout(() => reject(new Error('Provider timeout')), ADAPTER_TIMEOUT_MS);
+        });
         const result = await Promise.race([
           adapter.checkExposure(normalizedEmail),
           timeoutPromise
@@ -64,6 +65,8 @@ export async function runScanPipeline(normalizedEmail) {
           latencyMs: Date.now() - start,
           error: err.message
         });
+      } finally {
+        clearTimeout(timeoutId);
       }
     })
   );
