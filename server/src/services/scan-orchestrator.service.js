@@ -1,8 +1,11 @@
 import { primaryMockAdapter, secondaryMockAdapter } from '../adapters/mock-source.adapter.js';
+import SourceRegistry from '../models/SourceRegistry.js';
 import { generateActionPlan } from './recommendation.service.js';
 
-const ADAPTERS = [primaryMockAdapter, secondaryMockAdapter];
-const ADAPTER_TIMEOUT_MS = 6000;
+const ADAPTER_MAP = new Map(
+  [primaryMockAdapter, secondaryMockAdapter].map((adapter) => [adapter.sourceId, adapter])
+);
+const DEFAULT_ADAPTER_TIMEOUT_MS = 6000;
 
 function normalizeFinding(raw) {
   return {
@@ -34,16 +37,27 @@ function deduplicateFindings(findings) {
 }
 
 export async function runScanPipeline(normalizedEmail) {
+  const enabledSources = await SourceRegistry.find({ enabled: true }).lean();
+  const sourcesToRun = enabledSources
+    .map((config) => ({ config, adapter: ADAPTER_MAP.get(config.sourceId) }))
+    .filter((entry) => Boolean(entry.adapter));
+
+  if (sourcesToRun.length === 0) {
+    return { status: 'failed', sourcesStatus: [], findings: [], actions: [] };
+  }
+
   const sourcesStatus = [];
   const rawFindings = [];
 
   await Promise.allSettled(
-    ADAPTERS.map(async (adapter) => {
+    sourcesToRun.map(async ({ config, adapter }) => {
       const start = Date.now();
+      const timeoutMs = Number(config.timeoutMs) > 0 ? Number(config.timeoutMs) : DEFAULT_ADAPTER_TIMEOUT_MS;
+      const sourceName = config.name || adapter.sourceName;
       let timeoutId;
       try {
         const timeoutPromise = new Promise((_, reject) => {
-          timeoutId = setTimeout(() => reject(new Error('Provider timeout')), ADAPTER_TIMEOUT_MS);
+          timeoutId = setTimeout(() => reject(new Error('Provider timeout')), timeoutMs);
         });
         const result = await Promise.race([
           adapter.checkExposure(normalizedEmail),
@@ -52,7 +66,7 @@ export async function runScanPipeline(normalizedEmail) {
 
         sourcesStatus.push({
           sourceId: adapter.sourceId,
-          sourceName: adapter.sourceName,
+          sourceName,
           status: 'success',
           latencyMs: Date.now() - start
         });
@@ -60,7 +74,7 @@ export async function runScanPipeline(normalizedEmail) {
       } catch (err) {
         sourcesStatus.push({
           sourceId: adapter.sourceId,
-          sourceName: adapter.sourceName,
+          sourceName,
           status: err.message === 'Provider timeout' ? 'timeout' : 'failed',
           latencyMs: Date.now() - start,
           error: err.message

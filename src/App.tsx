@@ -12,17 +12,72 @@ type State =
   | { kind: "done"; sources: Source[] }
   | { kind: "error"; message: string }
 
-async function checkEmail(email: string): Promise<Source[]> {
+function getApiBase(): string {
   const base = import.meta.env.VITE_API_URL
-  if (!base) throw new Error("The checker isn't connected yet. Set VITE_API_URL to the Sentinel server address.")
-  const res = await fetch(`${base}/api/check`, {
-    method: "POST",
+  if (!base) {
+    throw new Error("The checker isn't connected yet. Set VITE_API_URL to the Sentinel server address.")
+  }
+  return base.replace(/\/$/, "")
+}
+async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
+  const res = await fetch(`${getApiBase()}${path}`, {
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email }),
+    ...init,
   })
-  if (!res.ok) throw new Error("The check didn't finish. Try again in a moment.")
-  const data = (await res.json()) as { sources: Source[] }
-  return data.sources
+  const data = await res.json().catch(() => ({}))
+  if (!res.ok) {
+    throw new Error(data.message || "The check didn't finish. Try again in a moment.")
+  }
+  return data as T
+}
+
+function startVerification(email: string) {
+  return apiFetch<{ verificationId: string; resendCooldownSeconds: number }>(
+    "/api/v1/verifications",
+    { method: "POST", body: JSON.stringify({ email }) },
+  )
+}
+
+async function confirmAndScan(verificationId: string, email: string, otp: string): Promise<Source[]> {
+  const { sessionToken } = await apiFetch<{ sessionToken: string }>(
+    `/api/v1/verifications/${verificationId}/confirm`,
+    { method: "POST", body: JSON.stringify({ otp, email }) },
+  )
+
+  const { scanId } = await apiFetch<{ scanId: string }>(
+    "/api/v1/scans",
+    { method: "POST", body: JSON.stringify({ verificationId, sessionToken, email }) },
+  )
+
+  for (let i = 0; i < 30; i++) {
+    const poll = await apiFetch<{ status: string }>(`/api/v1/scans/${scanId}`)
+    if (poll.status !== "running") break
+    await new Promise((r) => setTimeout(r, 500))
+  }
+
+  const result = await apiFetch<{
+    status: string
+    sourcesStatus: { sourceId: string; sourceName: string; status: string }[]
+    findings: { sourceId: string; exposedFields: string[] }[]
+  }>(`/api/v1/scans/${scanId}/findings`)
+  if (result.status === "failed") {
+    throw new Error("None of the sources could be checked. Try again in a moment.")
+  }
+
+  return result.sourcesStatus.map((s) => {
+    const matched = result.findings.filter((f) => f.sourceId === s.sourceId)
+    const fields = Array.from(new Set(matched.flatMap((f) => f.exposedFields)))
+    return {
+      name: s.sourceName,
+      found: matched.length > 0,
+      detail:
+        s.status !== "success"
+          ? "Source unavailable"
+          : matched.length > 0
+            ? `Reported fields: ${fields.join(", ")}`
+            : undefined,
+    }
+  })
 }
 
 const SOURCES = ["Breach lists", "Paste sites", "Public records", "Data brokers", "Forums"]
@@ -65,16 +120,28 @@ const TEAM: LanyardMember[] = [
 
 export default function App() {
   const [email, setEmail] = useState("")
+  const [otp, setOtp] = useState("")
+  const [verificationId, setVerificationId] = useState<string | null>(null)
   const [state, setState] = useState<State>({ kind: "idle" })
   const emailId = useId()
   const hintId = useId()
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!email.trim()) return
+    const cleanEmail = email.trim()
+    if (!cleanEmail) return
     setState({ kind: "loading" })
     try {
-      setState({ kind: "done", sources: await checkEmail(email.trim()) })
+      if (!verificationId) {
+        const res = await startVerification(cleanEmail)
+        setVerificationId(res.verificationId)
+        setState({ kind: "idle" })
+      } else {
+        const sources = await confirmAndScan(verificationId, cleanEmail, otp.trim())
+        setVerificationId(null)
+        setOtp("")
+        setState({ kind: "done", sources })
+      }
     } catch (err) {
       setState({ kind: "error", message: err instanceof Error ? err.message : "Something went wrong." })
     }
@@ -127,21 +194,49 @@ export default function App() {
                   autoComplete="email"
                   required
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => {
+                    setEmail(e.target.value)
+                    if (verificationId) {
+                      setVerificationId(null)
+                      setOtp("")
+                    }
+                  }}
                   aria-describedby={hintId}
                   placeholder="name@example.com"
                   className="min-h-14 flex-1 rounded-xl bg-silk px-4 text-lg text-deep placeholder:text-deep/55"
                 />
+                {verificationId && (
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    maxLength={6}
+                    required
+                    aria-label="6-digit verification code"
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                    placeholder="6-digit code"
+                    className="min-h-14 rounded-xl bg-silk px-4 text-lg text-deep placeholder:text-deep/55 sm:w-44"
+                  />
+                )}
                 <button
                   type="submit"
-                  disabled={state.kind === "loading"}
+                  disabled={state.kind === "loading" || (Boolean(verificationId) && otp.length !== 6)}
                   className="min-h-14 rounded-xl bg-flag px-6 text-lg font-bold text-deep transition-transform active:scale-[0.98] disabled:opacity-70"
                 >
-                  {state.kind === "loading" ? "Checking…" : "Check my email"}
+                  {state.kind === "loading"
+                    ? verificationId
+                      ? "Checking…"
+                      : "Sending code…"
+                    : verificationId
+                      ? "Verify & check"
+                      : "Send code"}
                 </button>
               </div>
               <p id={hintId} className="mt-3 text-base text-mist">
-                Only public sources are searched.
+                {verificationId
+                  ? "Enter the 6-digit verification code sent for this address."
+                  : "Only public sources are searched."}
               </p>
 
               <div aria-live="polite" className="mt-4">
@@ -152,14 +247,22 @@ export default function App() {
                 )}
                 {state.kind === "done" && (
                   <ul className="space-y-2">
-                    {state.sources.map((s) => (
-                      <li key={s.name} className="flex items-baseline justify-between gap-4 rounded-xl border border-white/30 px-4 py-3 text-base">
-                        <span>{s.name}</span>
-                        <span className={s.found ? "font-bold text-flag" : "text-mist"}>
-                          {s.found ? "Found" : "Not found"}
-                        </span>
-                      </li>
-                    ))}
+                    {state.sources.map((s) => {
+                      const unavailable = s.detail === "Source unavailable"
+                      return (
+                        <li key={s.name} className="rounded-xl border border-white/30 px-4 py-3 text-base">
+                          <div className="flex items-baseline justify-between gap-4">
+                            <span>{s.name}</span>
+                            <span className={s.found || unavailable ? "font-bold text-flag" : "text-mist"}>
+                              {unavailable ? "Unavailable" : s.found ? "Found" : "Not found"}
+                            </span>
+                          </div>
+                          {s.detail && !unavailable && (
+                            <p className="mt-1 text-sm text-mist">{s.detail}</p>
+                          )}
+                        </li>
+                      )
+                    })}
                   </ul>
                 )}
               </div>

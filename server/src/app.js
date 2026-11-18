@@ -59,39 +59,39 @@ app.get('/api/health', (req, res) => {
 app.use('/api/v1/verifications', verificationRoutes);
 app.use('/api/v1/scans', scansRoutes);
 
-app.post('/api/check', async (req, res, next) => {
-  try {
-    const email = req.body?.email;
-    if (!isValidEmail(email)) {
-      return res.status(400).json({ error: 'INVALID_EMAIL', message: 'Please enter a valid email address.' });
-    }
+// app.post('/api/check', async (req, res, next) => {
+//   try {
+//     const email = req.body?.email;
+//     if (!isValidEmail(email)) {
+//       return res.status(400).json({ error: 'INVALID_EMAIL', message: 'Please enter a valid email address.' });
+//     }
 
-    const outcome = await runScanPipeline(normalizeEmail(email));
-    if (outcome.status === 'failed') {
-      return res.status(502).json({ error: 'SCAN_FAILED', message: 'All breach sources are unavailable.' });
-    }
+//     const outcome = await runScanPipeline(normalizeEmail(email));
+//     if (outcome.status === 'failed') {
+//       return res.status(502).json({ error: 'SCAN_FAILED', message: 'All breach sources are unavailable.' });
+//     }
 
-    const sources = outcome.sourcesStatus.map((source) => {
-      const matched = outcome.findings.filter((f) => f.sourceId === source.sourceId);
-      const found = matched.length > 0;
-      const fields = Array.from(new Set(matched.flatMap((f) => f.exposedFields)));
+//     const sources = outcome.sourcesStatus.map((source) => {
+//       const matched = outcome.findings.filter((f) => f.sourceId === source.sourceId);
+//       const found = matched.length > 0;
+//       const fields = Array.from(new Set(matched.flatMap((f) => f.exposedFields)));
 
-      return {
-        name: source.sourceName,
-        found,
-        ...(source.status !== 'success'
-          ? { detail: 'Source unavailable' }
-          : found
-            ? { detail: `Reported fields: ${fields.join(', ')}` }
-            : {}),
-      };
-    });
+//       return {
+//         name: source.sourceName,
+//         found,
+//         ...(source.status !== 'success'
+//           ? { detail: 'Source unavailable' }
+//           : found
+//             ? { detail: `Reported fields: ${fields.join(', ')}` }
+//             : {}),
+//       };
+//     });
 
-    return res.status(200).json({ sources });
-  } catch (err) {
-    return next(err);
-  }
-});
+//     return res.status(200).json({ sources });
+//   } catch (err) {
+//     return next(err);
+//   }
+// });
 
 // Redacted error handler (never log req.body to avoid leaking emails/OTPs)[cite: 1]
 app.use((err, req, res, _next) => {

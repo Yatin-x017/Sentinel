@@ -1,11 +1,25 @@
 import VerificationSession from '../models/VerificationSession.js';
 import { normalizeEmail, hmacHash, generateOtp, generateSessionToken } from '../middleware/crypto.utils.js';
 import { isValidEmail, isValidOtp } from '../validators/input.validator.js';
+import { sendOtpEmail } from '../services/mailer.service.js';
 
 const OTP_TTL_MS = 10 * 60 * 1000; // 10 minutes
 const RESEND_COOLDOWN_MS = 30 * 1000; // 30 seconds
 const MAX_ATTEMPTS = 5;
 const MAX_RESENDS = 3;
+
+async function deliverOtp(normalizedEmail, otp, sessionId) {
+  try {
+    await sendOtpEmail(normalizedEmail, otp);
+  } catch (err) {
+    // Keep generic caller responses on delivery errors to avoid email enumeration.
+    console.error(`[MAILER] OTP delivery failed for verification ${sessionId}: ${err.message}`);
+  }
+
+  if (process.env.DEV_LOG_OTP === 'true') {
+    console.log(`[DEV OTP] Verification ${sessionId} code: ${otp}`);
+  }
+}
 
 export async function startVerification(req, res) {
   const { email } = req.body;
@@ -24,11 +38,7 @@ export async function startVerification(req, res) {
     expiresAt: new Date(Date.now() + OTP_TTL_MS)
   });
 
-  // In non-production dev/demo mode, return devOtpHint ONLY if explicitly enabled via env
-  // Never log the raw email address
-  if (process.env.NODE_ENV !== 'production') {
-    console.log(`[DEV OTP] Verification ${session._id} code: ${otp}`);
-  }
+  await deliverOtp(normalized, otp, session._id);
 
   return res.status(201).json({
     verificationId: session._id,
@@ -107,6 +117,16 @@ export async function resendVerification(req, res) {
     return res.status(429).json({ error: 'MAX_RESENDS', message: 'Maximum resend limit reached.' });
   }
 
+  const { email } = req.body || {};
+  if (!isValidEmail(email)) {
+    return res.status(400).json({ error: 'INVALID_EMAIL', message: 'Please enter a valid email address.' });
+  }
+
+  const normalized = normalizeEmail(email);
+  if (hmacHash(normalized, process.env.EMAIL_HMAC_SECRET) !== session.emailHash) {
+    return res.status(403).json({ error: 'SESSION_MISMATCH', message: 'Session does not match email.' });
+  }
+
   const newOtp = generateOtp();
   session.otpHmac = hmacHash(newOtp, process.env.OTP_HMAC_SECRET);
   session.resendCount += 1;
@@ -114,13 +134,11 @@ export async function resendVerification(req, res) {
   session.lastSentAt = new Date();
   await session.save();
 
-  if (process.env.NODE_ENV !== 'production') {
-    console.log(`[DEV OTP RESEND] Verification ${session._id} code: ${newOtp}`);
-  }
+  await deliverOtp(normalized, newOtp, session._id);
 
   return res.status(200).json({
     verificationId: session._id,
     resendCooldownSeconds: Math.floor(RESEND_COOLDOWN_MS / 1000),
-    message: 'A new verification code has been sent.'
+    message: 'If this email can receive messages, a new verification code has been sent.'
   });
 }
