@@ -5,34 +5,9 @@ import { generateActionPlan } from "./recommendation.service.js"
 const ADAPTER_MAP = new Map([primaryMockAdapter, secondaryMockAdapter].map((adapter) => [adapter.sourceId, adapter]))
 const DEFAULT_ADAPTER_TIMEOUT_MS = 6000
 
-function normalizeFinding(raw) {
-  return {
-    sourceId: raw.sourceId || "unknown_source",
-    incidentId: raw.incidentId || `${raw.sourceId}_${raw.breachName || "incident"}`.toLowerCase(),
-    identifierType: "email",
-    matchType: "exact",
-    exposedFields: Array.isArray(raw.exposedFields) ? raw.exposedFields : ["email"],
-    breachDate: raw.breachDate || null,
-    retrievedAt: new Date().toISOString(),
-    confidence: "high",
-    evidenceReference: raw.referenceUrl || "Verified source record",
-  }
-}
+import { normalizeFinding } from "./normalization.service.js";
 
-function deduplicateFindings(findings) {
-  const map = new Map()
-  for (const item of findings) {
-    const key = `${item.incidentId}_${item.breachDate || "unknown"}`
-    if (map.has(key)) {
-      const existing = map.get(key)
-      existing.exposedFields = Array.from(new Set([...existing.exposedFields, ...item.exposedFields]))
-      existing.evidenceReference = `${existing.evidenceReference}, ${item.evidenceReference}`
-    } else {
-      map.set(key, { ...item })
-    }
-  }
-  return Array.from(map.values())
-}
+import { deduplicateFindings } from "./deduplication.service.js";
 
 export async function runScanPipeline(normalizedEmail) {
   const enabledSources = await SourceRegistry.find({ enabled: true }).lean()

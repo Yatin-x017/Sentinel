@@ -1,5 +1,6 @@
 import VerificationSession from "../models/VerificationSession.js"
 import ScanSession from "../models/ScanSession.js"
+import SourceRegistry from "../models/SourceRegistry.js"
 import { normalizeEmail, hmacHash } from "../middleware/crypto.utils.js"
 import { isValidEmail } from "../validators/input.validator.js"
 import { runScanPipeline } from "../services/scan-orchestrator.service.js"
@@ -23,13 +24,16 @@ export async function startScan(req, res) {
     return res.status(403).json({ error: "SESSION_MISMATCH", message: "Session does not match verified email." })
   }
 
+  // Fetch enabled sources to populate pending status dynamically
+  const enabledSources = await SourceRegistry.find({ enabled: true }).lean();
   const scan = await ScanSession.create({
     verificationSessionId: verification._id,
     status: "running",
-    sourcesStatus: [
-      { sourceId: "sentinel_verified_feed_01", sourceName: "Primary Breach Metadata Feed", status: "pending" },
-      { sourceId: "sentinel_archive_feed_02", sourceName: "Secondary Archive Index", status: "pending" },
-    ],
+    sourcesStatus: enabledSources.map(src => ({
+      sourceId: src.sourceId,
+      sourceName: src.name,
+      status: "pending",
+    })),
     expiresAt: new Date(Date.now() + 20 * 60 * 1000),
   })
 

@@ -10,7 +10,7 @@ export function deduplicateFindings(findings) {
       const mergedFields = Array.from(new Set([...existing.exposedFields, ...finding.exposedFields]))
       existing.exposedFields = mergedFields
 
-      existing.evidenceReference = `${existing.evidenceReference}, ${finding.sourceId}`
+      existing.evidenceReference = `${existing.evidenceReference}, ${finding.evidenceReference}`
     } else {
       incidentMap.set(dedupeKey, { ...finding })
     }

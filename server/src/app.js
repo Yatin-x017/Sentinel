@@ -3,8 +3,9 @@ import cors from "cors"
 import helmet from "helmet"
 import rateLimit from "express-rate-limit"
 import mongoose from "mongoose"
-import verificationRoutes from "./routes/verification.routes.js"
-import scansRoutes from "./routes/scans.routes.js"
+import healthRoutes from "./routes/health.routes.js";
+import verificationRoutes from "./routes/verification.routes.js";
+import scansRoutes from "./routes/scans.routes.js";
 
 const app = express()
 app.set("trust proxy", 1)
@@ -41,12 +42,7 @@ const apiLimiter = rateLimit({
 })
 app.use("/api", apiLimiter)
 
-app.get("/api/health", (req, res) => {
-  res.status(200).json({
-    status: "ok",
-    db: mongoose.connection.readyState === 1 ? "connected" : "disconnected",
-  })
-})
+app.use("/api/health", healthRoutes)
 
 app.use("/api/v1/verifications", verificationRoutes)
 app.use("/api/v1/scans", scansRoutes)
