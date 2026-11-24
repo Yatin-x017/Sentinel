@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose"
 
 const sourceRegistrySchema = new mongoose.Schema(
   {
@@ -8,7 +8,7 @@ const sourceRegistrySchema = new mongoose.Schema(
     timeoutMs: { type: Number, default: 6000, min: 100 },
     rateLimitPerMin: { type: Number, default: 60, min: 1 },
   },
-  { timestamps: true }
-);
+  { timestamps: true },
+)
 
-export default mongoose.model('SourceRegistry', sourceRegistrySchema);
+export default mongoose.model("SourceRegistry", sourceRegistrySchema)

@@ -1,10 +1,10 @@
-import 'dotenv/config';
-import mongoose from 'mongoose';
-import app from './app.js';
-import SourceRegistry from './models/SourceRegistry.js';
-import { primaryMockAdapter, secondaryMockAdapter } from './adapters/mock-source.adapter.js';
+import "dotenv/config"
+import mongoose from "mongoose"
+import app from "./app.js"
+import SourceRegistry from "./models/SourceRegistry.js"
+import { primaryMockAdapter, secondaryMockAdapter } from "./adapters/mock-source.adapter.js"
 
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT || 5001
 
 const DEFAULT_SOURCES = [
   {
@@ -21,7 +21,7 @@ const DEFAULT_SOURCES = [
     timeoutMs: 6000,
     rateLimitPerMin: 60,
   },
-];
+]
 
 async function seedSourceRegistry() {
   await Promise.all(
@@ -36,24 +36,24 @@ async function seedSourceRegistry() {
             rateLimitPerMin: source.rateLimitPerMin,
           },
         },
-        { upsert: true }
-      )
-    )
-  );
+        { upsert: true },
+      ),
+    ),
+  )
 }
 
 async function bootstrap() {
   try {
-    await mongoose.connect(process.env.MONGODB_URI);
-    console.log('MongoDB connected');
-    await seedSourceRegistry();
+    await mongoose.connect(process.env.MONGODB_URI)
+    console.log("MongoDB connected")
+    await seedSourceRegistry()
     app.listen(PORT, () => {
-      console.log(`Sentinel API listening on port ${PORT}`);
-    });
+      console.log(`Sentinel API listening on port ${PORT}`)
+    })
   } catch (err) {
-    console.error('Failed to start server:', err.message);
-    process.exit(1);
+    console.error("Failed to start server:", err.message)
+    process.exit(1)
   }
 }
 
-bootstrap();
+bootstrap()

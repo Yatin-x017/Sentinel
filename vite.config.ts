@@ -7,7 +7,6 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        // three.js is large and only the spider needs it; keep it out of the main bundle.
         manualChunks: (id) => (id.includes("node_modules/three") ? "three" : undefined),
       },
     },
@@ -16,11 +15,10 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
-      '/api': {
-        target: 'http://localhost:5001', // Match your Express PORT
+      "/api": {
+        target: process.env.VITE_API_PROXY || "http://localhost:5001",
         changeOrigin: true,
-        secure: false
-      }
-    }
-  }
+      },
+    },
+  },
 })

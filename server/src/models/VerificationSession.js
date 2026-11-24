@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose"
 
 const verificationSessionSchema = new mongoose.Schema({
   emailHash: { type: String, required: true, index: true },
@@ -8,7 +8,7 @@ const verificationSessionSchema = new mongoose.Schema({
   lastSentAt: { type: Date, default: Date.now },
   verified: { type: Boolean, default: false },
   sessionTokenHash: { type: String, default: null },
-  expiresAt: { type: Date, required: true, index: { expireAfterSeconds: 0 } }
-});
+  expiresAt: { type: Date, required: true, index: { expireAfterSeconds: 0 } },
+})
 
-export default mongoose.model('VerificationSession', verificationSessionSchema);
+export default mongoose.model("VerificationSession", verificationSessionSchema)

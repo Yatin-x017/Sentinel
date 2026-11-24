@@ -1,75 +1,71 @@
-# Sentinel client (React + Vite + Tailwind v4)
+# Sentinel
 
-Frontend for Sentinel, built from `DESIGN.md` (Signal & Evidence) and `PRODUCT.md`.
+Sentinel combines the Yatin branch's React/Vite site with the Ekansh branch's Express API. The site verifies inbox ownership, starts a scan, and displays source findings from the API. The included adapters return synthetic fixtures for demonstrations; they do not query real breach databases.
 
-```bash
-npm install
-npm run dev      # http://localhost:5173
-npm run build
-```
+## Run locally
 
-## Demo mode (default)
+Requirements: Node.js 20 or newer and MongoDB.
 
-`VITE_USE_MOCK` is on unless set to `false`. No email is sent and no real source is queried.
-All data comes from synthetic fixtures (`src/services/fixtures.js`) and every screen that shows it carries a "Demo data" notice.
+1. Start MongoDB locally.
+2. In `server`, copy `.env.example` to `.env`, then replace both HMAC secrets with long random values.
+3. Install and start the API:
 
-- Verification code: `123456`
-- Scenario is chosen by the email address you type:
-  - contains `nomatch` → complete, no matching records
-  - contains `partial` → one source unavailable (retry succeeds in the demo)
-  - contains `fail` → scan failed
-  - anything else → two findings
+   ```sh
+   cd server
+   npm install
+   npm run dev
+   ```
 
-## Connecting the real backend
+4. In a second terminal, install and start the site:
 
-Copy `.env.example` to `.env`, set `VITE_USE_MOCK=false`. The dev server proxies `/api` to `http://localhost:5000` (override with `VITE_API_PROXY`).
-All calls live in `src/services/realScanApi.js`; pages never call `fetch` directly.
+   ```sh
+   cd ..
+   npm install
+   npm run dev
+   ```
 
-| Call | Request | Response |
-|---|---|---|
-| `POST /verification` | `{ email }` | `{ verificationId, maskedEmail, resendAfterSeconds }` |
-| `POST /verification/resend` | `{ verificationId }` | `{ resendAfterSeconds }` |
-| `POST /verification/confirm` | `{ verificationId, code }` | `{ scanId }` |
-| `GET /scans/:id` | | Scan |
-| `POST /scans/:id/cancel` | | 204 |
-| `POST /scans/:id/retry` | | `{ scanId }` |
+5. Open <http://localhost:5173>. In local demo mode, the verification code appears in the API terminal. Enter it in the page to finish the scan. Set SMTP_HOST, SMTP_USER, and SMTP_PASS in `server/.env` to deliver codes by email.
 
-Errors: non-2xx with `{ error: { code } }`. Codes the UI has copy for: `invalid_email`, `delivery_failed`, `incorrect_code`, `expired_code`, `rate_limited`, `not_found`, `network`.
+The Vite development server proxies `/api` to `http://localhost:5001`. Set `VITE_API_PROXY` to change that address. For production, set `VITE_API_URL` to the public API URL and set `CLIENT_ORIGIN` on the API to the public site URL.
 
-**Scan shape**
+## Main pieces
 
-```js
-{
-  id, status,            // running | complete | partial | failed | cancelled
-  illustrative,          // true only for demo data
-  maskedEmail, completedAt, retrySupported, errorReference,
-  sources:  [{ id, name, reference, state, checkedAt, note }], // waiting | checking | complete | unavailable
-  findings: [{ id, sourceId, sourceName, title, reference, reportedDate, retrievedAt,
-               fields: ['Email', 'Password hash'], explanation, action,
-               why: { matchBasis, notes, limitations } }]
-}
-```
+- `src/App.tsx` composes the marketing page and lazy-loads the Three.js silk cursor.
+- `src/sections` contains the page sections; `src/components` contains reusable page elements and the email verification form.
+- `src/hooks/useEmailCheck.ts` controls verification and scan states.
+- `src/lib/api.ts` calls the API, polls scan status, and maps the result to the UI.
+- `server/src/app.js` configures Express, security headers, CORS, rate limiting, and routes.
+- `server/src/controllers` implements verification and scan endpoints.
+- `server/src/services` implements orchestration, normalization, deduplication, recommendations, and mail delivery.
+- `server/src/adapters/mock-source.adapter.js` supplies deterministic synthetic scenarios.
+- `server/src/models` defines temporary verification, source, and scan records.
 
-The UI only shows counts and progress derived from this payload. It never invents percentages, and it never treats `partial` or `failed` as "no match".
+## API flow
 
-## Before launch
+1. `POST /api/v1/verifications` creates a short-lived verification and sends a one-time code.
+2. `POST /api/v1/verifications/:id/confirm` validates the code and returns a short-lived session token.
+3. `POST /api/v1/scans` checks that token, creates a scan, and starts the source pipeline.
+4. `GET /api/v1/scans/:id` returns scan status; the client polls until it finishes.
+5. `GET /api/v1/scans/:id/findings` returns the final sources, findings, and recommendations.
 
-- `src/pages/PrivacyPage.jsx` is draft copy. Every `[confirm]` must be replaced with real, verified behaviour (sources, what is sent, retention, logs, contact).
-- Fonts load from Google Fonts in `index.html`. Self-host them if you want no third-party requests (relevant for a privacy product).
-- The action plan (`src/services/actionPlan.js`) is derived on the client from findings. Move it to the backend if you want it authoritative.
-- Run the DESIGN.md review workflow (critique, distill, polish, audit) and test with a keyboard and a screen reader.
+## Demo scenarios
 
-## Structure
+The mock adapters choose a deterministic scenario based on the submitted email: `nomatch` or `clean` produces no findings; `partial` makes one source unavailable; `timeout` simulates a slow provider; `fail` makes all providers unavailable; other addresses produce synthetic findings. Do not enter real personal information in the demo.
 
-```
-src/
-  app/         App shell, routes
-  components/  ui/ (primitives), layout/ (header, footer, reading settings), scan/ (domain components)
-  pages/       one file per route in DESIGN.md section 4
-  services/    scanApi (switch), mock + real clients, fixtures, action plan
-  hooks/       useScan, useReadingSettings
-  styles/      tokens.css (Tailwind @theme + CSS vars), global.css
-```
+## Hosting
 
-Colours, fonts, radii and shadows are tokens in `tokens.css`; Tailwind's default palette is disabled so one-off colours can't creep in.
-Reading settings (text size, font, line spacing, contrast, motion) are in the header and footer.
+The site can be hosted as a static Vite build, while the API needs a Node service and a reachable MongoDB instance. Configure `VITE_API_URL` for the site and `MONGODB_URI`, both HMAC secrets, and `CLIENT_ORIGIN` for the API. Production mail delivery requires SMTP settings. The source adapters are demo-only; replace them with provider adapters and review source access terms, privacy copy, retention, and security before public use.
+
+## Evaluation walkthrough
+
+1. Explain how the site combines modular React sections with the API flow.
+2. Demonstrate email validation and inbox verification, then complete a scan using the development code printed in the API terminal.
+3. Try `student@nomatch.example` and `student@partial.example` to compare clean and partial outcomes.
+4. Explain that a verified session token gates the scan endpoint, while source adapters are synthetic fixtures in this build.
+5. Point out the split between presentation (`src`), request coordination (hook and API client), and business logic/data (`server/src`).
+
+## Commands
+
+- `npm run typecheck` checks the frontend types.
+- `npm run build` builds the static site.
+- `npm run dev` starts Vite.

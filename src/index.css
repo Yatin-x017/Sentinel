@@ -2,14 +2,13 @@
 
 @theme {
   --font-sans: "Atkinson Hyperlegible", ui-sans-serif, system-ui, sans-serif;
-  --color-field: #1530e6;   /* the page: also the bounce light on the spider */
-  --color-deep: #000a3a;    /* shadow, input text, button text */
+  --color-field: #1530e6;
+  --color-deep: #000a3a;
   --color-silk: #ffffff;
-  --color-mist: #dfe5ff;    /* body text on the field */
-  --color-flag: #ffe45c;    /* the one accent: "found" */
+  --color-mist: #dfe5ff;
+  --color-flag: #ffe45c;
 }
 
-/* Tokens the lanyard rail expects (shadcn-style names) */
 @theme {
   --color-background: #1530e6;
   --color-foreground: #ffffff;
@@ -26,25 +25,26 @@
   --color-chart-5: #5cc8ff;
 }
 
-/* On the page the rail uses light-on-blue; on the badge faces it flips to dark-on-white. */
 [data-slot="team-lanyard-rail"] [data-face] {
   --color-foreground: #000a3a;
   --color-muted-foreground: #4b5380;
 }
 
-html { background: var(--color-field); scroll-behavior: smooth; }
+html {
+  background: var(--color-field);
+  scroll-behavior: smooth;
+}
 body {
   margin: 0;
   background: var(--color-field);
   color: var(--color-silk);
   font-family: var(--font-sans);
-  font-size: 1.125rem;       /* 18px floor: older adults, dyslexic readers */
+  font-size: 1.125rem;
   line-height: 1.65;
   letter-spacing: 0.01em;
   -webkit-font-smoothing: antialiased;
 }
 
-/* Everything that silk may stick to is outlined, so the web has visible places to land. */
 .node {
   border: 1.5px solid rgb(255 255 255 / 0.55);
   background: rgb(255 255 255 / 0.04);
@@ -56,5 +56,7 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  html { scroll-behavior: auto; }
+  html {
+    scroll-behavior: auto;
+  }
 }
