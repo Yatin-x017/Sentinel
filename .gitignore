@@ -1,10 +1,13 @@
 node_modules/
 dist/
+.vite/
 .env
 .env.*
 !.env.example
 server/node_modules/
 server/.env
 server/.env.*
+tsconfig.tsbuildinfo
 *.tsbuildinfo
 .DS_Store
+sentinel-codebase.md

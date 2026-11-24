@@ -1,0 +1,74 @@
+-- R6 -- READ : Source reliability, timeout rate, and average latency report across all scans
+-- run1: 7.712 ms | run2: 7.629 ms | run3: 7.694 ms | avg: 7.678 ms | median: 7.694 ms
+
+=== R6 run 1 ===
+Sort  (cost=1961.47..1961.49 rows=6 width=114) (actual time=7.677..7.677 rows=5.00 loops=1)
+  Sort Key: (count(*) FILTER (WHERE ((sss.status)::text = 'success'::text))) DESC, sr.source_id
+  Sort Method: quicksort  Memory: 25kB
+  Buffers: shared hit=388
+  ->  HashAggregate  (cost=1961.31..1961.40 rows=6 width=114) (actual time=7.667..7.668 rows=5.00 loops=1)
+        Group Key: sr.name
+        Batches: 1  Memory Usage: 32kB
+        Buffers: shared hit=382
+        ->  Hash Join  (cost=1.14..961.31 rows=40000 width=69) (actual time=0.010..4.018 rows=40000.00 loops=1)
+              Hash Cond: ((sss.source_id)::text = (sr.source_id)::text)
+              Buffers: shared hit=382
+              ->  Seq Scan on scan_source_statuses sss  (cost=0.00..781.00 rows=40000 width=42) (actual time=0.002..1.029 rows=40000.00 loops=1)
+                    Buffers: shared hit=381
+              ->  Hash  (cost=1.06..1.06 rows=6 width=50) (actual time=0.004..0.004 rows=6.00 loops=1)
+                    Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                    Buffers: shared hit=1
+                    ->  Seq Scan on source_registry sr  (cost=0.00..1.06 rows=6 width=50) (actual time=0.001..0.001 rows=6.00 loops=1)
+                          Buffers: shared hit=1
+Planning:
+  Buffers: shared hit=250
+Planning Time: 0.311 ms
+Execution Time: 7.712 ms
+
+=== R6 run 2 ===
+Sort  (cost=1961.47..1961.49 rows=6 width=114) (actual time=7.592..7.593 rows=5.00 loops=1)
+  Sort Key: (count(*) FILTER (WHERE ((sss.status)::text = 'success'::text))) DESC, sr.source_id
+  Sort Method: quicksort  Memory: 25kB
+  Buffers: shared hit=388
+  ->  HashAggregate  (cost=1961.31..1961.40 rows=6 width=114) (actual time=7.582..7.584 rows=5.00 loops=1)
+        Group Key: sr.name
+        Batches: 1  Memory Usage: 32kB
+        Buffers: shared hit=382
+        ->  Hash Join  (cost=1.14..961.31 rows=40000 width=69) (actual time=0.010..4.042 rows=40000.00 loops=1)
+              Hash Cond: ((sss.source_id)::text = (sr.source_id)::text)
+              Buffers: shared hit=382
+              ->  Seq Scan on scan_source_statuses sss  (cost=0.00..781.00 rows=40000 width=42) (actual time=0.002..1.047 rows=40000.00 loops=1)
+                    Buffers: shared hit=381
+              ->  Hash  (cost=1.06..1.06 rows=6 width=50) (actual time=0.004..0.004 rows=6.00 loops=1)
+                    Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                    Buffers: shared hit=1
+                    ->  Seq Scan on source_registry sr  (cost=0.00..1.06 rows=6 width=50) (actual time=0.001..0.002 rows=6.00 loops=1)
+                          Buffers: shared hit=1
+Planning:
+  Buffers: shared hit=250
+Planning Time: 0.318 ms
+Execution Time: 7.629 ms
+
+=== R6 run 3 ===
+Sort  (cost=1961.47..1961.49 rows=6 width=114) (actual time=7.648..7.648 rows=5.00 loops=1)
+  Sort Key: (count(*) FILTER (WHERE ((sss.status)::text = 'success'::text))) DESC, sr.source_id
+  Sort Method: quicksort  Memory: 25kB
+  Buffers: shared hit=388
+  ->  HashAggregate  (cost=1961.31..1961.40 rows=6 width=114) (actual time=7.637..7.638 rows=5.00 loops=1)
+        Group Key: sr.name
+        Batches: 1  Memory Usage: 32kB
+        Buffers: shared hit=382
+        ->  Hash Join  (cost=1.14..961.31 rows=40000 width=69) (actual time=0.014..4.117 rows=40000.00 loops=1)
+              Hash Cond: ((sss.source_id)::text = (sr.source_id)::text)
+              Buffers: shared hit=382
+              ->  Seq Scan on scan_source_statuses sss  (cost=0.00..781.00 rows=40000 width=42) (actual time=0.003..1.069 rows=40000.00 loops=1)
+                    Buffers: shared hit=381
+              ->  Hash  (cost=1.06..1.06 rows=6 width=50) (actual time=0.005..0.005 rows=6.00 loops=1)
+                    Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                    Buffers: shared hit=1
+                    ->  Seq Scan on source_registry sr  (cost=0.00..1.06 rows=6 width=50) (actual time=0.002..0.002 rows=6.00 loops=1)
+                          Buffers: shared hit=1
+Planning:
+  Buffers: shared hit=250
+Planning Time: 0.344 ms
+Execution Time: 7.694 ms

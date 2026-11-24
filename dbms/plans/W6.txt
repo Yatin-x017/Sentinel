@@ -1,0 +1,86 @@
+-- W6 -- WRITE : Hard-delete a scan session and its parent verification session (deleteScan privacy cleanup)
+-- run1: 0.525 ms | run2: 0.674 ms | run3: 0.558 ms | avg: 0.586 ms | median: 0.558 ms
+
+=== W6 run 1 ===
+Delete on verification_sessions vs  (cost=8.58..16.62 rows=1 width=38) (actual time=0.047..0.048 rows=1.00 loops=1)
+  Buffers: shared hit=24
+  CTE target_scan
+    ->  Delete on scan_sessions  (cost=0.28..8.30 rows=1 width=6) (actual time=0.032..0.033 rows=1.00 loops=1)
+          Buffers: shared hit=16
+          ->  Index Scan using scan_sessions_pkey on scan_sessions  (cost=0.28..8.30 rows=1 width=6) (actual time=0.007..0.007 rows=1.00 loops=1)
+                Index Cond: (scan_session_id = 8000)
+                Index Searches: 1
+                Buffers: shared hit=6
+  ->  Nested Loop  (cost=0.28..8.32 rows=1 width=38) (actual time=0.043..0.044 rows=1.00 loops=1)
+        Buffers: shared hit=19
+        ->  CTE Scan on target_scan ts  (cost=0.00..0.02 rows=1 width=40) (actual time=0.042..0.042 rows=1.00 loops=1)
+              Storage: Memory  Maximum Storage: 17kB
+              Buffers: shared hit=16
+        ->  Index Scan using verification_sessions_pkey on verification_sessions vs  (cost=0.28..8.30 rows=1 width=14) (actual time=0.001..0.001 rows=1.00 loops=1)
+              Index Cond: (verification_session_id = ts.verification_session_id)
+              Index Searches: 1
+              Buffers: shared hit=3
+Planning:
+  Buffers: shared hit=283
+Planning Time: 0.451 ms
+Trigger for constraint scan_source_statuses_scan_session_id_fkey on scan_sessions: time=0.122 calls=1
+Trigger for constraint scan_findings_scan_session_id_fkey on scan_sessions: time=0.148 calls=1
+Trigger for constraint scan_actions_scan_session_id_fkey on scan_sessions: time=0.136 calls=1
+Trigger for constraint scan_sessions_verification_session_id_fkey on verification_sessions: time=0.015 calls=1
+Execution Time: 0.525 ms
+
+=== W6 run 2 ===
+Delete on verification_sessions vs  (cost=8.58..16.62 rows=1 width=38) (actual time=0.050..0.051 rows=1.00 loops=1)
+  Buffers: shared hit=24
+  CTE target_scan
+    ->  Delete on scan_sessions  (cost=0.28..8.30 rows=1 width=6) (actual time=0.039..0.039 rows=1.00 loops=1)
+          Buffers: shared hit=16
+          ->  Index Scan using scan_sessions_pkey on scan_sessions  (cost=0.28..8.30 rows=1 width=6) (actual time=0.010..0.011 rows=1.00 loops=1)
+                Index Cond: (scan_session_id = 8000)
+                Index Searches: 1
+                Buffers: shared hit=6
+  ->  Nested Loop  (cost=0.28..8.32 rows=1 width=38) (actual time=0.045..0.045 rows=1.00 loops=1)
+        Buffers: shared hit=19
+        ->  CTE Scan on target_scan ts  (cost=0.00..0.02 rows=1 width=40) (actual time=0.043..0.044 rows=1.00 loops=1)
+              Storage: Memory  Maximum Storage: 17kB
+              Buffers: shared hit=16
+        ->  Index Scan using verification_sessions_pkey on verification_sessions vs  (cost=0.28..8.30 rows=1 width=14) (actual time=0.001..0.001 rows=1.00 loops=1)
+              Index Cond: (verification_session_id = ts.verification_session_id)
+              Index Searches: 1
+              Buffers: shared hit=3
+Planning:
+  Buffers: shared hit=283
+Planning Time: 0.644 ms
+Trigger for constraint scan_source_statuses_scan_session_id_fkey on scan_sessions: time=0.158 calls=1
+Trigger for constraint scan_findings_scan_session_id_fkey on scan_sessions: time=0.215 calls=1
+Trigger for constraint scan_actions_scan_session_id_fkey on scan_sessions: time=0.148 calls=1
+Trigger for constraint scan_sessions_verification_session_id_fkey on verification_sessions: time=0.025 calls=1
+Execution Time: 0.674 ms
+
+=== W6 run 3 ===
+Delete on verification_sessions vs  (cost=8.58..16.62 rows=1 width=38) (actual time=0.046..0.046 rows=1.00 loops=1)
+  Buffers: shared hit=24
+  CTE target_scan
+    ->  Delete on scan_sessions  (cost=0.28..8.30 rows=1 width=6) (actual time=0.033..0.034 rows=1.00 loops=1)
+          Buffers: shared hit=16
+          ->  Index Scan using scan_sessions_pkey on scan_sessions  (cost=0.28..8.30 rows=1 width=6) (actual time=0.007..0.007 rows=1.00 loops=1)
+                Index Cond: (scan_session_id = 8000)
+                Index Searches: 1
+                Buffers: shared hit=6
+  ->  Nested Loop  (cost=0.28..8.32 rows=1 width=38) (actual time=0.042..0.042 rows=1.00 loops=1)
+        Buffers: shared hit=19
+        ->  CTE Scan on target_scan ts  (cost=0.00..0.02 rows=1 width=40) (actual time=0.040..0.041 rows=1.00 loops=1)
+              Storage: Memory  Maximum Storage: 17kB
+              Buffers: shared hit=16
+        ->  Index Scan using verification_sessions_pkey on verification_sessions vs  (cost=0.28..8.30 rows=1 width=14) (actual time=0.001..0.001 rows=1.00 loops=1)
+              Index Cond: (verification_session_id = ts.verification_session_id)
+              Index Searches: 1
+              Buffers: shared hit=3
+Planning:
+  Buffers: shared hit=283
+Planning Time: 0.433 ms
+Trigger for constraint scan_source_statuses_scan_session_id_fkey on scan_sessions: time=0.141 calls=1
+Trigger for constraint scan_findings_scan_session_id_fkey on scan_sessions: time=0.160 calls=1
+Trigger for constraint scan_actions_scan_session_id_fkey on scan_sessions: time=0.137 calls=1
+Trigger for constraint scan_sessions_verification_session_id_fkey on verification_sessions: time=0.016 calls=1
+Execution Time: 0.558 ms

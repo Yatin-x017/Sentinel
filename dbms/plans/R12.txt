@@ -1,0 +1,191 @@
+-- R12 -- READ : Completed scans exposing password hashes alongside high-priority credential remediation actions
+-- run1: 12.898 ms | run2: 12.559 ms | run3: 12.653 ms | avg: 12.703 ms | median: 12.653 ms
+
+=== R12 run 1 ===
+Limit  (cost=4652.88..4652.94 rows=25 width=146) (actual time=12.851..12.853 rows=25.00 loops=1)
+  Buffers: shared hit=1576
+  ->  Sort  (cost=4652.88..4676.21 rows=9335 width=146) (actual time=12.851..12.852 rows=25.00 loops=1)
+        Sort Key: (count(DISTINCT sf.finding_id)) DESC, ss.scan_session_id
+        Sort Method: top-N heapsort  Memory: 32kB
+        Buffers: shared hit=1576
+        ->  GroupAggregate  (cost=4156.07..4389.45 rows=9335 width=146) (actual time=11.008..12.439 rows=6118.00 loops=1)
+              Group Key: ss.scan_session_id, vs.email_hash, sa.priority, sa.title
+              Buffers: shared hit=1573
+              ->  Sort  (cost=4156.07..4179.41 rows=9335 width=146) (actual time=11.005..11.207 rows=11437.00 loops=1)
+                    Sort Key: ss.scan_session_id, vs.email_hash, sa.priority, sa.title, sf.finding_id
+                    Sort Method: quicksort  Memory: 2261kB
+                    Buffers: shared hit=1573
+                    ->  Hash Join  (cost=2582.90..3540.50 rows=9335 width=146) (actual time=4.398..9.577 rows=11437.00 loops=1)
+                          Hash Cond: (ss.verification_session_id = vs.verification_session_id)
+                          Buffers: shared hit=1564
+                          ->  Hash Join  (cost=2310.40..3243.48 rows=9335 width=89) (actual time=3.571..7.893 rows=11437.00 loops=1)
+                                Hash Cond: (sf.scan_session_id = sa.scan_session_id)
+                                Buffers: shared hit=1404
+                                ->  Hash Join  (cost=1175.30..2081.85 rows=10100 width=32) (actual time=1.643..5.039 rows=11437.00 loops=1)
+                                      Hash Cond: (sf.scan_session_id = ss.scan_session_id)
+                                      Buffers: shared hit=720
+                                      ->  Hash Join  (cost=917.82..1789.69 rows=13207 width=16) (actual time=1.048..3.572 rows=13024.00 loops=1)
+                                            Hash Cond: (sf.finding_id = fef.finding_id)
+                                            Buffers: shared hit=639
+                                            ->  Seq Scan on scan_findings sf  (cost=0.00..803.48 rows=26048 width=16) (actual time=0.003..0.942 rows=26048.00 loops=1)
+                                                  Buffers: shared hit=543
+                                            ->  Hash  (cost=752.73..752.73 rows=13207 width=8) (actual time=1.036..1.036 rows=13024.00 loops=1)
+                                                  Buckets: 16384  Batches: 1  Memory Usage: 637kB
+                                                  Buffers: shared hit=96
+                                                  ->  Bitmap Heap Scan on finding_exposed_fields fef  (cost=150.65..752.73 rows=13207 width=8) (actual time=0.113..0.630 rows=13024.00 loops=1)
+                                                        Recheck Cond: ((field_name)::text = 'password_hash'::text)
+                                                        Heap Blocks: exact=84
+                                                        Buffers: shared hit=96
+                                                        ->  Bitmap Index Scan on idx_fef_field_name  (cost=0.00..147.34 rows=13207 width=0) (actual time=0.106..0.106 rows=13024.00 loops=1)
+                                                              Index Cond: ((field_name)::text = 'password_hash'::text)
+                                                              Index Searches: 1
+                                                              Buffers: shared hit=12
+                                      ->  Hash  (cost=181.00..181.00 rows=6118 width=16) (actual time=0.583..0.583 rows=6118.00 loops=1)
+                                            Buckets: 8192  Batches: 1  Memory Usage: 351kB
+                                            Buffers: shared hit=81
+                                            ->  Seq Scan on scan_sessions ss  (cost=0.00..181.00 rows=6118 width=16) (actual time=0.002..0.335 rows=6118.00 loops=1)
+                                                  Filter: ((status)::text = 'completed'::text)
+                                                  Rows Removed by Filter: 1882
+                                                  Buffers: shared hit=81
+                                ->  Hash  (cost=1042.67..1042.67 rows=7394 width=73) (actual time=1.923..1.923 rows=7394.00 loops=1)
+                                      Buckets: 8192  Batches: 1  Memory Usage: 873kB
+                                      Buffers: shared hit=684
+                                      ->  Seq Scan on scan_actions sa  (cost=0.00..1042.67 rows=7394 width=73) (actual time=0.003..1.498 rows=7394.00 loops=1)
+                                            Filter: ((action_code)::text = 'act_change_password'::text)
+                                            Rows Removed by Filter: 21300
+                                            Buffers: shared hit=684
+                          ->  Hash  (cost=210.00..210.00 rows=5000 width=73) (actual time=0.819..0.819 rows=5000.00 loops=1)
+                                Buckets: 8192  Batches: 1  Memory Usage: 611kB
+                                Buffers: shared hit=160
+                                ->  Seq Scan on verification_sessions vs  (cost=0.00..210.00 rows=5000 width=73) (actual time=0.004..0.594 rows=5000.00 loops=1)
+                                      Buffers: shared hit=160
+Planning:
+  Buffers: shared hit=533
+Planning Time: 1.432 ms
+Execution Time: 12.898 ms
+
+=== R12 run 2 ===
+Limit  (cost=4652.88..4652.94 rows=25 width=146) (actual time=12.477..12.480 rows=25.00 loops=1)
+  Buffers: shared hit=1576
+  ->  Sort  (cost=4652.88..4676.21 rows=9335 width=146) (actual time=12.477..12.478 rows=25.00 loops=1)
+        Sort Key: (count(DISTINCT sf.finding_id)) DESC, ss.scan_session_id
+        Sort Method: top-N heapsort  Memory: 32kB
+        Buffers: shared hit=1576
+        ->  GroupAggregate  (cost=4156.07..4389.45 rows=9335 width=146) (actual time=10.638..12.056 rows=6118.00 loops=1)
+              Group Key: ss.scan_session_id, vs.email_hash, sa.priority, sa.title
+              Buffers: shared hit=1573
+              ->  Sort  (cost=4156.07..4179.41 rows=9335 width=146) (actual time=10.635..10.829 rows=11437.00 loops=1)
+                    Sort Key: ss.scan_session_id, vs.email_hash, sa.priority, sa.title, sf.finding_id
+                    Sort Method: quicksort  Memory: 2261kB
+                    Buffers: shared hit=1573
+                    ->  Hash Join  (cost=2582.90..3540.50 rows=9335 width=146) (actual time=4.291..9.223 rows=11437.00 loops=1)
+                          Hash Cond: (ss.verification_session_id = vs.verification_session_id)
+                          Buffers: shared hit=1564
+                          ->  Hash Join  (cost=2310.40..3243.48 rows=9335 width=89) (actual time=3.462..7.568 rows=11437.00 loops=1)
+                                Hash Cond: (sf.scan_session_id = sa.scan_session_id)
+                                Buffers: shared hit=1404
+                                ->  Hash Join  (cost=1175.30..2081.85 rows=10100 width=32) (actual time=1.618..4.847 rows=11437.00 loops=1)
+                                      Hash Cond: (sf.scan_session_id = ss.scan_session_id)
+                                      Buffers: shared hit=720
+                                      ->  Hash Join  (cost=917.82..1789.69 rows=13207 width=16) (actual time=1.034..3.435 rows=13024.00 loops=1)
+                                            Hash Cond: (sf.finding_id = fef.finding_id)
+                                            Buffers: shared hit=639
+                                            ->  Seq Scan on scan_findings sf  (cost=0.00..803.48 rows=26048 width=16) (actual time=0.003..0.915 rows=26048.00 loops=1)
+                                                  Buffers: shared hit=543
+                                            ->  Hash  (cost=752.73..752.73 rows=13207 width=8) (actual time=1.022..1.022 rows=13024.00 loops=1)
+                                                  Buckets: 16384  Batches: 1  Memory Usage: 637kB
+                                                  Buffers: shared hit=96
+                                                  ->  Bitmap Heap Scan on finding_exposed_fields fef  (cost=150.65..752.73 rows=13207 width=8) (actual time=0.105..0.620 rows=13024.00 loops=1)
+                                                        Recheck Cond: ((field_name)::text = 'password_hash'::text)
+                                                        Heap Blocks: exact=84
+                                                        Buffers: shared hit=96
+                                                        ->  Bitmap Index Scan on idx_fef_field_name  (cost=0.00..147.34 rows=13207 width=0) (actual time=0.099..0.099 rows=13024.00 loops=1)
+                                                              Index Cond: ((field_name)::text = 'password_hash'::text)
+                                                              Index Searches: 1
+                                                              Buffers: shared hit=12
+                                      ->  Hash  (cost=181.00..181.00 rows=6118 width=16) (actual time=0.577..0.577 rows=6118.00 loops=1)
+                                            Buckets: 8192  Batches: 1  Memory Usage: 351kB
+                                            Buffers: shared hit=81
+                                            ->  Seq Scan on scan_sessions ss  (cost=0.00..181.00 rows=6118 width=16) (actual time=0.001..0.337 rows=6118.00 loops=1)
+                                                  Filter: ((status)::text = 'completed'::text)
+                                                  Rows Removed by Filter: 1882
+                                                  Buffers: shared hit=81
+                                ->  Hash  (cost=1042.67..1042.67 rows=7394 width=73) (actual time=1.838..1.838 rows=7394.00 loops=1)
+                                      Buckets: 8192  Batches: 1  Memory Usage: 873kB
+                                      Buffers: shared hit=684
+                                      ->  Seq Scan on scan_actions sa  (cost=0.00..1042.67 rows=7394 width=73) (actual time=0.003..1.403 rows=7394.00 loops=1)
+                                            Filter: ((action_code)::text = 'act_change_password'::text)
+                                            Rows Removed by Filter: 21300
+                                            Buffers: shared hit=684
+                          ->  Hash  (cost=210.00..210.00 rows=5000 width=73) (actual time=0.820..0.820 rows=5000.00 loops=1)
+                                Buckets: 8192  Batches: 1  Memory Usage: 611kB
+                                Buffers: shared hit=160
+                                ->  Seq Scan on verification_sessions vs  (cost=0.00..210.00 rows=5000 width=73) (actual time=0.006..0.614 rows=5000.00 loops=1)
+                                      Buffers: shared hit=160
+Planning:
+  Buffers: shared hit=533
+Planning Time: 1.361 ms
+Execution Time: 12.559 ms
+
+=== R12 run 3 ===
+Limit  (cost=4652.88..4652.94 rows=25 width=146) (actual time=12.606..12.608 rows=25.00 loops=1)
+  Buffers: shared hit=1576
+  ->  Sort  (cost=4652.88..4676.21 rows=9335 width=146) (actual time=12.606..12.607 rows=25.00 loops=1)
+        Sort Key: (count(DISTINCT sf.finding_id)) DESC, ss.scan_session_id
+        Sort Method: top-N heapsort  Memory: 32kB
+        Buffers: shared hit=1576
+        ->  GroupAggregate  (cost=4156.07..4389.45 rows=9335 width=146) (actual time=10.770..12.194 rows=6118.00 loops=1)
+              Group Key: ss.scan_session_id, vs.email_hash, sa.priority, sa.title
+              Buffers: shared hit=1573
+              ->  Sort  (cost=4156.07..4179.41 rows=9335 width=146) (actual time=10.767..10.962 rows=11437.00 loops=1)
+                    Sort Key: ss.scan_session_id, vs.email_hash, sa.priority, sa.title, sf.finding_id
+                    Sort Method: quicksort  Memory: 2261kB
+                    Buffers: shared hit=1573
+                    ->  Hash Join  (cost=2582.90..3540.50 rows=9335 width=146) (actual time=4.303..9.341 rows=11437.00 loops=1)
+                          Hash Cond: (ss.verification_session_id = vs.verification_session_id)
+                          Buffers: shared hit=1564
+                          ->  Hash Join  (cost=2310.40..3243.48 rows=9335 width=89) (actual time=3.485..7.698 rows=11437.00 loops=1)
+                                Hash Cond: (sf.scan_session_id = sa.scan_session_id)
+                                Buffers: shared hit=1404
+                                ->  Hash Join  (cost=1175.30..2081.85 rows=10100 width=32) (actual time=1.613..4.914 rows=11437.00 loops=1)
+                                      Hash Cond: (sf.scan_session_id = ss.scan_session_id)
+                                      Buffers: shared hit=720
+                                      ->  Hash Join  (cost=917.82..1789.69 rows=13207 width=16) (actual time=1.039..3.473 rows=13024.00 loops=1)
+                                            Hash Cond: (sf.finding_id = fef.finding_id)
+                                            Buffers: shared hit=639
+                                            ->  Seq Scan on scan_findings sf  (cost=0.00..803.48 rows=26048 width=16) (actual time=0.003..0.927 rows=26048.00 loops=1)
+                                                  Buffers: shared hit=543
+                                            ->  Hash  (cost=752.73..752.73 rows=13207 width=8) (actual time=1.027..1.027 rows=13024.00 loops=1)
+                                                  Buckets: 16384  Batches: 1  Memory Usage: 637kB
+                                                  Buffers: shared hit=96
+                                                  ->  Bitmap Heap Scan on finding_exposed_fields fef  (cost=150.65..752.73 rows=13207 width=8) (actual time=0.107..0.623 rows=13024.00 loops=1)
+                                                        Recheck Cond: ((field_name)::text = 'password_hash'::text)
+                                                        Heap Blocks: exact=84
+                                                        Buffers: shared hit=96
+                                                        ->  Bitmap Index Scan on idx_fef_field_name  (cost=0.00..147.34 rows=13207 width=0) (actual time=0.101..0.101 rows=13024.00 loops=1)
+                                                              Index Cond: ((field_name)::text = 'password_hash'::text)
+                                                              Index Searches: 1
+                                                              Buffers: shared hit=12
+                                      ->  Hash  (cost=181.00..181.00 rows=6118 width=16) (actual time=0.568..0.568 rows=6118.00 loops=1)
+                                            Buckets: 8192  Batches: 1  Memory Usage: 351kB
+                                            Buffers: shared hit=81
+                                            ->  Seq Scan on scan_sessions ss  (cost=0.00..181.00 rows=6118 width=16) (actual time=0.001..0.338 rows=6118.00 loops=1)
+                                                  Filter: ((status)::text = 'completed'::text)
+                                                  Rows Removed by Filter: 1882
+                                                  Buffers: shared hit=81
+                                ->  Hash  (cost=1042.67..1042.67 rows=7394 width=73) (actual time=1.867..1.867 rows=7394.00 loops=1)
+                                      Buckets: 8192  Batches: 1  Memory Usage: 873kB
+                                      Buffers: shared hit=684
+                                      ->  Seq Scan on scan_actions sa  (cost=0.00..1042.67 rows=7394 width=73) (actual time=0.003..1.402 rows=7394.00 loops=1)
+                                            Filter: ((action_code)::text = 'act_change_password'::text)
+                                            Rows Removed by Filter: 21300
+                                            Buffers: shared hit=684
+                          ->  Hash  (cost=210.00..210.00 rows=5000 width=73) (actual time=0.811..0.811 rows=5000.00 loops=1)
+                                Buckets: 8192  Batches: 1  Memory Usage: 611kB
+                                Buffers: shared hit=160
+                                ->  Seq Scan on verification_sessions vs  (cost=0.00..210.00 rows=5000 width=73) (actual time=0.004..0.612 rows=5000.00 loops=1)
+                                      Buffers: shared hit=160
+Planning:
+  Buffers: shared hit=533
+Planning Time: 1.391 ms
+Execution Time: 12.653 ms

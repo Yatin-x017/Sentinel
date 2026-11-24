@@ -1,0 +1,113 @@
+-- R7 -- READ : Most frequently exposed personal data field categories across completed scans
+-- run1: 43.026 ms | run2: 42.978 ms | run3: 42.815 ms | avg: 42.940 ms | median: 42.978 ms
+
+=== R7 run 1 ===
+Sort  (cost=7852.53..7852.54 rows=6 width=25) (actual time=42.528..42.529 rows=6.00 loops=1)
+  Sort Key: (count(DISTINCT sf.finding_id)) DESC, fef.field_name
+  Sort Method: quicksort  Memory: 25kB
+  Buffers: shared hit=1067, temp read=305 written=306
+  ->  GroupAggregate  (cost=7297.95..7852.45 rows=6 width=25) (actual time=39.024..42.521 rows=6.00 loops=1)
+        Group Key: fef.field_name
+        Buffers: shared hit=1061, temp read=305 written=306
+        ->  Sort  (cost=7297.95..7436.56 rows=55444 width=25) (actual time=36.951..38.969 rows=63692.00 loops=1)
+              Sort Key: fef.field_name, sf.finding_id
+              Sort Method: external merge  Disk: 2440kB
+              Buffers: shared hit=1061, temp read=305 written=306
+              ->  Hash Join  (cost=1386.55..2929.31 rows=55444 width=25) (actual time=2.764..13.976 rows=63692.00 loops=1)
+                    Hash Cond: (sf.scan_session_id = ss.scan_session_id)
+                    Buffers: shared hit=1061
+                    ->  Hash Join  (cost=1129.08..2481.43 rows=72500 width=25) (actual time=2.229..9.124 rows=72500.00 loops=1)
+                          Hash Cond: (fef.finding_id = sf.finding_id)
+                          Buffers: shared hit=980
+                          ->  Seq Scan on finding_exposed_fields fef  (cost=0.00..1162.00 rows=72500 width=17) (actual time=0.002..1.759 rows=72500.00 loops=1)
+                                Buffers: shared hit=437
+                          ->  Hash  (cost=803.48..803.48 rows=26048 width=16) (actual time=2.212..2.212 rows=26048.00 loops=1)
+                                Buckets: 32768  Batches: 1  Memory Usage: 1477kB
+                                Buffers: shared hit=543
+                                ->  Seq Scan on scan_findings sf  (cost=0.00..803.48 rows=26048 width=16) (actual time=0.002..1.321 rows=26048.00 loops=1)
+                                      Buffers: shared hit=543
+                    ->  Hash  (cost=181.00..181.00 rows=6118 width=8) (actual time=0.527..0.527 rows=6118.00 loops=1)
+                          Buckets: 8192  Batches: 1  Memory Usage: 303kB
+                          Buffers: shared hit=81
+                          ->  Seq Scan on scan_sessions ss  (cost=0.00..181.00 rows=6118 width=8) (actual time=0.003..0.332 rows=6118.00 loops=1)
+                                Filter: ((status)::text = 'completed'::text)
+                                Rows Removed by Filter: 1882
+                                Buffers: shared hit=81
+Planning:
+  Buffers: shared hit=298
+Planning Time: 0.565 ms
+Execution Time: 43.026 ms
+
+=== R7 run 2 ===
+Sort  (cost=7852.53..7852.54 rows=6 width=25) (actual time=42.411..42.412 rows=6.00 loops=1)
+  Sort Key: (count(DISTINCT sf.finding_id)) DESC, fef.field_name
+  Sort Method: quicksort  Memory: 25kB
+  Buffers: shared hit=1067, temp read=305 written=306
+  ->  GroupAggregate  (cost=7297.95..7852.45 rows=6 width=25) (actual time=38.925..42.404 rows=6.00 loops=1)
+        Group Key: fef.field_name
+        Buffers: shared hit=1061, temp read=305 written=306
+        ->  Sort  (cost=7297.95..7436.56 rows=55444 width=25) (actual time=36.815..38.846 rows=63692.00 loops=1)
+              Sort Key: fef.field_name, sf.finding_id
+              Sort Method: external merge  Disk: 2440kB
+              Buffers: shared hit=1061, temp read=305 written=306
+              ->  Hash Join  (cost=1386.55..2929.31 rows=55444 width=25) (actual time=2.770..13.697 rows=63692.00 loops=1)
+                    Hash Cond: (sf.scan_session_id = ss.scan_session_id)
+                    Buffers: shared hit=1061
+                    ->  Hash Join  (cost=1129.08..2481.43 rows=72500 width=25) (actual time=2.226..8.955 rows=72500.00 loops=1)
+                          Hash Cond: (fef.finding_id = sf.finding_id)
+                          Buffers: shared hit=980
+                          ->  Seq Scan on finding_exposed_fields fef  (cost=0.00..1162.00 rows=72500 width=17) (actual time=0.002..1.713 rows=72500.00 loops=1)
+                                Buffers: shared hit=437
+                          ->  Hash  (cost=803.48..803.48 rows=26048 width=16) (actual time=2.208..2.208 rows=26048.00 loops=1)
+                                Buckets: 32768  Batches: 1  Memory Usage: 1477kB
+                                Buffers: shared hit=543
+                                ->  Seq Scan on scan_findings sf  (cost=0.00..803.48 rows=26048 width=16) (actual time=0.002..1.308 rows=26048.00 loops=1)
+                                      Buffers: shared hit=543
+                    ->  Hash  (cost=181.00..181.00 rows=6118 width=8) (actual time=0.536..0.537 rows=6118.00 loops=1)
+                          Buckets: 8192  Batches: 1  Memory Usage: 303kB
+                          Buffers: shared hit=81
+                          ->  Seq Scan on scan_sessions ss  (cost=0.00..181.00 rows=6118 width=8) (actual time=0.003..0.339 rows=6118.00 loops=1)
+                                Filter: ((status)::text = 'completed'::text)
+                                Rows Removed by Filter: 1882
+                                Buffers: shared hit=81
+Planning:
+  Buffers: shared hit=298
+Planning Time: 0.548 ms
+Execution Time: 42.978 ms
+
+=== R7 run 3 ===
+Sort  (cost=7852.53..7852.54 rows=6 width=25) (actual time=42.265..42.266 rows=6.00 loops=1)
+  Sort Key: (count(DISTINCT sf.finding_id)) DESC, fef.field_name
+  Sort Method: quicksort  Memory: 25kB
+  Buffers: shared hit=1067, temp read=305 written=306
+  ->  GroupAggregate  (cost=7297.95..7852.45 rows=6 width=25) (actual time=38.761..42.258 rows=6.00 loops=1)
+        Group Key: fef.field_name
+        Buffers: shared hit=1061, temp read=305 written=306
+        ->  Sort  (cost=7297.95..7436.56 rows=55444 width=25) (actual time=36.678..38.689 rows=63692.00 loops=1)
+              Sort Key: fef.field_name, sf.finding_id
+              Sort Method: external merge  Disk: 2440kB
+              Buffers: shared hit=1061, temp read=305 written=306
+              ->  Hash Join  (cost=1386.55..2929.31 rows=55444 width=25) (actual time=2.897..13.940 rows=63692.00 loops=1)
+                    Hash Cond: (sf.scan_session_id = ss.scan_session_id)
+                    Buffers: shared hit=1061
+                    ->  Hash Join  (cost=1129.08..2481.43 rows=72500 width=25) (actual time=2.353..9.162 rows=72500.00 loops=1)
+                          Hash Cond: (fef.finding_id = sf.finding_id)
+                          Buffers: shared hit=980
+                          ->  Seq Scan on finding_exposed_fields fef  (cost=0.00..1162.00 rows=72500 width=17) (actual time=0.003..1.729 rows=72500.00 loops=1)
+                                Buffers: shared hit=437
+                          ->  Hash  (cost=803.48..803.48 rows=26048 width=16) (actual time=2.334..2.334 rows=26048.00 loops=1)
+                                Buckets: 32768  Batches: 1  Memory Usage: 1477kB
+                                Buffers: shared hit=543
+                                ->  Seq Scan on scan_findings sf  (cost=0.00..803.48 rows=26048 width=16) (actual time=0.002..1.367 rows=26048.00 loops=1)
+                                      Buffers: shared hit=543
+                    ->  Hash  (cost=181.00..181.00 rows=6118 width=8) (actual time=0.537..0.537 rows=6118.00 loops=1)
+                          Buckets: 8192  Batches: 1  Memory Usage: 303kB
+                          Buffers: shared hit=81
+                          ->  Seq Scan on scan_sessions ss  (cost=0.00..181.00 rows=6118 width=8) (actual time=0.003..0.340 rows=6118.00 loops=1)
+                                Filter: ((status)::text = 'completed'::text)
+                                Rows Removed by Filter: 1882
+                                Buffers: shared hit=81
+Planning:
+  Buffers: shared hit=298
+Planning Time: 0.552 ms
+Execution Time: 42.815 ms

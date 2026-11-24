@@ -1,0 +1,128 @@
+-- R9 -- READ : Partial and failed scans with degraded source details and error messages
+-- run1: 1.968 ms | run2: 1.952 ms | run3: 1.921 ms | avg: 1.947 ms | median: 1.952 ms
+
+=== R9 run 1 ===
+Limit  (cost=696.77..696.84 rows=25 width=112) (actual time=1.943..1.945 rows=25.00 loops=1)
+  Buffers: shared hit=497
+  ->  Sort  (cost=696.77..698.71 rows=776 width=112) (actual time=1.943..1.944 rows=25.00 loops=1)
+        Sort Key: ss.created_at DESC, ss.scan_session_id DESC
+        Sort Method: top-N heapsort  Memory: 30kB
+        Buffers: shared hit=497
+        ->  Hash Join  (cost=227.19..674.88 rows=776 width=112) (actual time=0.397..1.547 rows=4170.00 loops=1)
+              Hash Cond: ((sss.source_id)::text = (sr.source_id)::text)
+              Buffers: shared hit=491
+              ->  Hash Join  (cost=226.05..670.27 rows=776 width=85) (actual time=0.389..1.235 rows=4170.00 loops=1)
+                    Hash Cond: (sss.scan_session_id = ss.scan_session_id)
+                    Buffers: shared hit=490
+                    ->  Bitmap Heap Scan on scan_source_statuses sss  (cost=79.84..513.08 rows=4179 width=68) (actual time=0.126..0.653 rows=4170.00 loops=1)
+                          Recheck Cond: ((status)::text = ANY ('{timeout,failed}'::text[]))
+                          Heap Blocks: exact=381
+                          Buffers: shared hit=403
+                          ->  Bitmap Index Scan on idx_sss_source_status  (cost=0.00..78.80 rows=4179 width=0) (actual time=0.107..0.107 rows=4170.00 loops=1)
+                                Index Cond: ((status)::text = ANY ('{timeout,failed}'::text[]))
+                                Index Searches: 6
+                                Buffers: shared hit=22
+                    ->  Hash  (cost=127.64..127.64 rows=1485 width=25) (actual time=0.260..0.260 rows=1485.00 loops=1)
+                          Buckets: 2048  Batches: 1  Memory Usage: 98kB
+                          Buffers: shared hit=87
+                          ->  Bitmap Heap Scan on scan_sessions ss  (cost=28.08..127.64 rows=1485 width=25) (actual time=0.036..0.196 rows=1485.00 loops=1)
+                                Recheck Cond: ((status)::text = ANY ('{partial,failed}'::text[]))
+                                Heap Blocks: exact=81
+                                Buffers: shared hit=87
+                                ->  Bitmap Index Scan on idx_ss_status_created  (cost=0.00..27.71 rows=1485 width=0) (actual time=0.030..0.030 rows=1485.00 loops=1)
+                                      Index Cond: ((status)::text = ANY ('{partial,failed}'::text[]))
+                                      Index Searches: 1
+                                      Buffers: shared hit=6
+              ->  Hash  (cost=1.06..1.06 rows=6 width=50) (actual time=0.005..0.005 rows=6.00 loops=1)
+                    Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                    Buffers: shared hit=1
+                    ->  Seq Scan on source_registry sr  (cost=0.00..1.06 rows=6 width=50) (actual time=0.002..0.002 rows=6.00 loops=1)
+                          Buffers: shared hit=1
+Planning:
+  Buffers: shared hit=381
+Planning Time: 0.554 ms
+Execution Time: 1.968 ms
+
+=== R9 run 2 ===
+Limit  (cost=696.77..696.84 rows=25 width=112) (actual time=1.929..1.931 rows=25.00 loops=1)
+  Buffers: shared hit=497
+  ->  Sort  (cost=696.77..698.71 rows=776 width=112) (actual time=1.928..1.930 rows=25.00 loops=1)
+        Sort Key: ss.created_at DESC, ss.scan_session_id DESC
+        Sort Method: top-N heapsort  Memory: 30kB
+        Buffers: shared hit=497
+        ->  Hash Join  (cost=227.19..674.88 rows=776 width=112) (actual time=0.400..1.532 rows=4170.00 loops=1)
+              Hash Cond: ((sss.source_id)::text = (sr.source_id)::text)
+              Buffers: shared hit=491
+              ->  Hash Join  (cost=226.05..670.27 rows=776 width=85) (actual time=0.393..1.234 rows=4170.00 loops=1)
+                    Hash Cond: (sss.scan_session_id = ss.scan_session_id)
+                    Buffers: shared hit=490
+                    ->  Bitmap Heap Scan on scan_source_statuses sss  (cost=79.84..513.08 rows=4179 width=68) (actual time=0.128..0.645 rows=4170.00 loops=1)
+                          Recheck Cond: ((status)::text = ANY ('{timeout,failed}'::text[]))
+                          Heap Blocks: exact=381
+                          Buffers: shared hit=403
+                          ->  Bitmap Index Scan on idx_sss_source_status  (cost=0.00..78.80 rows=4179 width=0) (actual time=0.109..0.109 rows=4170.00 loops=1)
+                                Index Cond: ((status)::text = ANY ('{timeout,failed}'::text[]))
+                                Index Searches: 6
+                                Buffers: shared hit=22
+                    ->  Hash  (cost=127.64..127.64 rows=1485 width=25) (actual time=0.262..0.262 rows=1485.00 loops=1)
+                          Buckets: 2048  Batches: 1  Memory Usage: 98kB
+                          Buffers: shared hit=87
+                          ->  Bitmap Heap Scan on scan_sessions ss  (cost=28.08..127.64 rows=1485 width=25) (actual time=0.034..0.196 rows=1485.00 loops=1)
+                                Recheck Cond: ((status)::text = ANY ('{partial,failed}'::text[]))
+                                Heap Blocks: exact=81
+                                Buffers: shared hit=87
+                                ->  Bitmap Index Scan on idx_ss_status_created  (cost=0.00..27.71 rows=1485 width=0) (actual time=0.029..0.029 rows=1485.00 loops=1)
+                                      Index Cond: ((status)::text = ANY ('{partial,failed}'::text[]))
+                                      Index Searches: 1
+                                      Buffers: shared hit=6
+              ->  Hash  (cost=1.06..1.06 rows=6 width=50) (actual time=0.005..0.005 rows=6.00 loops=1)
+                    Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                    Buffers: shared hit=1
+                    ->  Seq Scan on source_registry sr  (cost=0.00..1.06 rows=6 width=50) (actual time=0.001..0.002 rows=6.00 loops=1)
+                          Buffers: shared hit=1
+Planning:
+  Buffers: shared hit=381
+Planning Time: 0.558 ms
+Execution Time: 1.952 ms
+
+=== R9 run 3 ===
+Limit  (cost=696.77..696.84 rows=25 width=112) (actual time=1.898..1.900 rows=25.00 loops=1)
+  Buffers: shared hit=497
+  ->  Sort  (cost=696.77..698.71 rows=776 width=112) (actual time=1.898..1.899 rows=25.00 loops=1)
+        Sort Key: ss.created_at DESC, ss.scan_session_id DESC
+        Sort Method: top-N heapsort  Memory: 30kB
+        Buffers: shared hit=497
+        ->  Hash Join  (cost=227.19..674.88 rows=776 width=112) (actual time=0.392..1.516 rows=4170.00 loops=1)
+              Hash Cond: ((sss.source_id)::text = (sr.source_id)::text)
+              Buffers: shared hit=491
+              ->  Hash Join  (cost=226.05..670.27 rows=776 width=85) (actual time=0.384..1.208 rows=4170.00 loops=1)
+                    Hash Cond: (sss.scan_session_id = ss.scan_session_id)
+                    Buffers: shared hit=490
+                    ->  Bitmap Heap Scan on scan_source_statuses sss  (cost=79.84..513.08 rows=4179 width=68) (actual time=0.123..0.625 rows=4170.00 loops=1)
+                          Recheck Cond: ((status)::text = ANY ('{timeout,failed}'::text[]))
+                          Heap Blocks: exact=381
+                          Buffers: shared hit=403
+                          ->  Bitmap Index Scan on idx_sss_source_status  (cost=0.00..78.80 rows=4179 width=0) (actual time=0.104..0.104 rows=4170.00 loops=1)
+                                Index Cond: ((status)::text = ANY ('{timeout,failed}'::text[]))
+                                Index Searches: 6
+                                Buffers: shared hit=22
+                    ->  Hash  (cost=127.64..127.64 rows=1485 width=25) (actual time=0.257..0.258 rows=1485.00 loops=1)
+                          Buckets: 2048  Batches: 1  Memory Usage: 98kB
+                          Buffers: shared hit=87
+                          ->  Bitmap Heap Scan on scan_sessions ss  (cost=28.08..127.64 rows=1485 width=25) (actual time=0.033..0.194 rows=1485.00 loops=1)
+                                Recheck Cond: ((status)::text = ANY ('{partial,failed}'::text[]))
+                                Heap Blocks: exact=81
+                                Buffers: shared hit=87
+                                ->  Bitmap Index Scan on idx_ss_status_created  (cost=0.00..27.71 rows=1485 width=0) (actual time=0.028..0.028 rows=1485.00 loops=1)
+                                      Index Cond: ((status)::text = ANY ('{partial,failed}'::text[]))
+                                      Index Searches: 1
+                                      Buffers: shared hit=6
+              ->  Hash  (cost=1.06..1.06 rows=6 width=50) (actual time=0.005..0.005 rows=6.00 loops=1)
+                    Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                    Buffers: shared hit=1
+                    ->  Seq Scan on source_registry sr  (cost=0.00..1.06 rows=6 width=50) (actual time=0.002..0.002 rows=6.00 loops=1)
+                          Buffers: shared hit=1
+Planning:
+  Buffers: shared hit=381
+Planning Time: 0.538 ms
+Execution Time: 1.921 ms
