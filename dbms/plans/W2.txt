@@ -1,0 +1,41 @@
+-- W2 -- WRITE : Increment failed OTP attempts on invalid verification code (confirmVerification failure)
+-- run1: 0.582 ms | run2: 0.128 ms | run3: 0.129 ms | avg: 0.280 ms | median: 0.129 ms
+
+=== W2 run 1 ===
+Update on verification_sessions  (cost=0.28..8.31 rows=1 width=8) (actual time=0.115..0.116 rows=1.00 loops=1)
+  Buffers: shared hit=30
+  ->  Index Scan using verification_sessions_pkey on verification_sessions  (cost=0.28..8.31 rows=1 width=8) (actual time=0.012..0.012 rows=1.00 loops=1)
+        Index Cond: (verification_session_id = 4501)
+        Filter: ((NOT verified) AND (attempts < 5) AND (expires_at > now()))
+        Index Searches: 1
+        Buffers: shared hit=6
+Planning:
+  Buffers: shared hit=125
+Planning Time: 0.235 ms
+Execution Time: 0.582 ms
+
+=== W2 run 2 ===
+Update on verification_sessions  (cost=0.28..8.31 rows=1 width=8) (actual time=0.089..0.090 rows=1.00 loops=1)
+  Buffers: shared hit=32
+  ->  Index Scan using verification_sessions_pkey on verification_sessions  (cost=0.28..8.31 rows=1 width=8) (actual time=0.013..0.015 rows=1.00 loops=1)
+        Index Cond: (verification_session_id = 4501)
+        Filter: ((NOT verified) AND (attempts < 5) AND (expires_at > now()))
+        Index Searches: 1
+        Buffers: shared hit=8
+Planning:
+  Buffers: shared hit=125
+Planning Time: 0.214 ms
+Execution Time: 0.128 ms
+
+=== W2 run 3 ===
+Update on verification_sessions  (cost=0.28..8.31 rows=1 width=8) (actual time=0.090..0.091 rows=1.00 loops=1)
+  Buffers: shared hit=32
+  ->  Index Scan using verification_sessions_pkey on verification_sessions  (cost=0.28..8.31 rows=1 width=8) (actual time=0.013..0.014 rows=1.00 loops=1)
+        Index Cond: (verification_session_id = 4501)
+        Filter: ((NOT verified) AND (attempts < 5) AND (expires_at > now()))
+        Index Searches: 1
+        Buffers: shared hit=8
+Planning:
+  Buffers: shared hit=125
+Planning Time: 0.219 ms
+Execution Time: 0.129 ms

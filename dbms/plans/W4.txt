@@ -1,0 +1,41 @@
+-- W4 -- WRITE : Rotate OTP hash, increment resend count, and reset attempt counter (resendVerification)
+-- run1: 0.136 ms | run2: 0.173 ms | run3: 0.132 ms | avg: 0.147 ms | median: 0.136 ms
+
+=== W4 run 1 ===
+Update on verification_sessions  (cost=0.28..8.32 rows=1 width=278) (actual time=0.095..0.097 rows=1.00 loops=1)
+  Buffers: shared hit=32
+  ->  Index Scan using verification_sessions_pkey on verification_sessions  (cost=0.28..8.32 rows=1 width=278) (actual time=0.015..0.016 rows=1.00 loops=1)
+        Index Cond: (verification_session_id = 4501)
+        Filter: ((NOT verified) AND (resend_count < 3) AND (expires_at > now()))
+        Index Searches: 1
+        Buffers: shared hit=8
+Planning:
+  Buffers: shared hit=122
+Planning Time: 0.238 ms
+Execution Time: 0.136 ms
+
+=== W4 run 2 ===
+Update on verification_sessions  (cost=0.28..8.32 rows=1 width=278) (actual time=0.133..0.133 rows=1.00 loops=1)
+  Buffers: shared hit=32
+  ->  Index Scan using verification_sessions_pkey on verification_sessions  (cost=0.28..8.32 rows=1 width=278) (actual time=0.015..0.015 rows=1.00 loops=1)
+        Index Cond: (verification_session_id = 4501)
+        Filter: ((NOT verified) AND (resend_count < 3) AND (expires_at > now()))
+        Index Searches: 1
+        Buffers: shared hit=8
+Planning:
+  Buffers: shared hit=122
+Planning Time: 0.233 ms
+Execution Time: 0.173 ms
+
+=== W4 run 3 ===
+Update on verification_sessions  (cost=0.28..8.32 rows=1 width=278) (actual time=0.089..0.091 rows=1.00 loops=1)
+  Buffers: shared hit=32
+  ->  Index Scan using verification_sessions_pkey on verification_sessions  (cost=0.28..8.32 rows=1 width=278) (actual time=0.014..0.015 rows=1.00 loops=1)
+        Index Cond: (verification_session_id = 4501)
+        Filter: ((NOT verified) AND (resend_count < 3) AND (expires_at > now()))
+        Index Searches: 1
+        Buffers: shared hit=8
+Planning:
+  Buffers: shared hit=122
+Planning Time: 0.223 ms
+Execution Time: 0.132 ms

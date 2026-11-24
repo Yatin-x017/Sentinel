@@ -1,0 +1,89 @@
+-- R10 -- READ : Active non-expired verification sessions pending OTP confirmation with remaining attempts
+-- run1: 0.606 ms | run2: 0.588 ms | run3: 0.597 ms | avg: 0.597 ms | median: 0.597 ms
+
+=== R10 run 1 ===
+Limit  (cost=345.91..345.92 rows=1 width=97) (actual time=0.582..0.584 rows=25.00 loops=1)
+  Buffers: shared hit=116
+  ->  Sort  (cost=345.91..345.92 rows=1 width=97) (actual time=0.582..0.583 rows=25.00 loops=1)
+        Sort Key: vs.expires_at
+        Sort Method: top-N heapsort  Memory: 30kB
+        Buffers: shared hit=116
+        ->  Hash Right Join  (cost=163.88..345.90 rows=1 width=97) (actual time=0.518..0.542 rows=500.00 loops=1)
+              Hash Cond: (ss.verification_session_id = vs.verification_session_id)
+              Filter: (ss.scan_session_id IS NULL)
+              Buffers: shared hit=113
+              ->  Seq Scan on scan_sessions ss  (cost=0.00..161.00 rows=8000 width=16) (actual time=0.001..0.212 rows=8000.00 loops=1)
+                    Buffers: shared hit=81
+              ->  Hash  (cost=162.41..162.41 rows=117 width=93) (actual time=0.098..0.098 rows=500.00 loops=1)
+                    Buckets: 1024  Batches: 1  Memory Usage: 71kB
+                    Buffers: shared hit=32
+                    ->  Bitmap Heap Scan on verification_sessions vs  (cost=5.52..162.41 rows=117 width=93) (actual time=0.027..0.072 rows=500.00 loops=1)
+                          Recheck Cond: ((expires_at > now()) AND (attempts < 5) AND (NOT verified))
+                          Heap Blocks: exact=18
+                          Buffers: shared hit=32
+                          ->  Bitmap Index Scan on idx_vs_pending_expiry  (cost=0.00..5.49 rows=117 width=0) (actual time=0.021..0.021 rows=500.00 loops=1)
+                                Index Cond: ((expires_at > now()) AND (attempts < 5))
+                                Index Searches: 1
+                                Buffers: shared hit=14
+Planning:
+  Buffers: shared hit=369
+Planning Time: 0.488 ms
+Execution Time: 0.606 ms
+
+=== R10 run 2 ===
+Limit  (cost=345.91..345.92 rows=1 width=97) (actual time=0.566..0.568 rows=25.00 loops=1)
+  Buffers: shared hit=116
+  ->  Sort  (cost=345.91..345.92 rows=1 width=97) (actual time=0.566..0.566 rows=25.00 loops=1)
+        Sort Key: vs.expires_at
+        Sort Method: top-N heapsort  Memory: 30kB
+        Buffers: shared hit=116
+        ->  Hash Right Join  (cost=163.88..345.90 rows=1 width=97) (actual time=0.502..0.526 rows=500.00 loops=1)
+              Hash Cond: (ss.verification_session_id = vs.verification_session_id)
+              Filter: (ss.scan_session_id IS NULL)
+              Buffers: shared hit=113
+              ->  Seq Scan on scan_sessions ss  (cost=0.00..161.00 rows=8000 width=16) (actual time=0.001..0.205 rows=8000.00 loops=1)
+                    Buffers: shared hit=81
+              ->  Hash  (cost=162.41..162.41 rows=117 width=93) (actual time=0.091..0.091 rows=500.00 loops=1)
+                    Buckets: 1024  Batches: 1  Memory Usage: 71kB
+                    Buffers: shared hit=32
+                    ->  Bitmap Heap Scan on verification_sessions vs  (cost=5.52..162.41 rows=117 width=93) (actual time=0.021..0.066 rows=500.00 loops=1)
+                          Recheck Cond: ((expires_at > now()) AND (attempts < 5) AND (NOT verified))
+                          Heap Blocks: exact=18
+                          Buffers: shared hit=32
+                          ->  Bitmap Index Scan on idx_vs_pending_expiry  (cost=0.00..5.49 rows=117 width=0) (actual time=0.015..0.015 rows=500.00 loops=1)
+                                Index Cond: ((expires_at > now()) AND (attempts < 5))
+                                Index Searches: 1
+                                Buffers: shared hit=14
+Planning:
+  Buffers: shared hit=369
+Planning Time: 0.462 ms
+Execution Time: 0.588 ms
+
+=== R10 run 3 ===
+Limit  (cost=345.91..345.92 rows=1 width=97) (actual time=0.574..0.575 rows=25.00 loops=1)
+  Buffers: shared hit=116
+  ->  Sort  (cost=345.91..345.92 rows=1 width=97) (actual time=0.573..0.574 rows=25.00 loops=1)
+        Sort Key: vs.expires_at
+        Sort Method: top-N heapsort  Memory: 30kB
+        Buffers: shared hit=116
+        ->  Hash Right Join  (cost=163.88..345.90 rows=1 width=97) (actual time=0.508..0.531 rows=500.00 loops=1)
+              Hash Cond: (ss.verification_session_id = vs.verification_session_id)
+              Filter: (ss.scan_session_id IS NULL)
+              Buffers: shared hit=113
+              ->  Seq Scan on scan_sessions ss  (cost=0.00..161.00 rows=8000 width=16) (actual time=0.001..0.202 rows=8000.00 loops=1)
+                    Buffers: shared hit=81
+              ->  Hash  (cost=162.41..162.41 rows=117 width=93) (actual time=0.094..0.094 rows=500.00 loops=1)
+                    Buckets: 1024  Batches: 1  Memory Usage: 71kB
+                    Buffers: shared hit=32
+                    ->  Bitmap Heap Scan on verification_sessions vs  (cost=5.52..162.41 rows=117 width=93) (actual time=0.022..0.069 rows=500.00 loops=1)
+                          Recheck Cond: ((expires_at > now()) AND (attempts < 5) AND (NOT verified))
+                          Heap Blocks: exact=18
+                          Buffers: shared hit=32
+                          ->  Bitmap Index Scan on idx_vs_pending_expiry  (cost=0.00..5.49 rows=117 width=0) (actual time=0.016..0.016 rows=500.00 loops=1)
+                                Index Cond: ((expires_at > now()) AND (attempts < 5))
+                                Index Searches: 1
+                                Buffers: shared hit=14
+Planning:
+  Buffers: shared hit=369
+Planning Time: 0.475 ms
+Execution Time: 0.597 ms

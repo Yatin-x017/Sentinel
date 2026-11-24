@@ -1,0 +1,131 @@
+-- R3 -- READ : Get normalized findings with source names and aggregated exposed fields for a scan (getScanFindings)
+-- run1: 0.152 ms | run2: 0.130 ms | run3: 0.128 ms | avg: 0.137 ms | median: 0.130 ms
+
+=== R3 run 1 ===
+Sort  (cost=36.61..36.64 rows=14 width=192) (actual time=0.103..0.104 rows=5.00 loops=1)
+  Sort Key: sf.breach_date DESC, sf.finding_id
+  Sort Method: quicksort  Memory: 26kB
+  Buffers: shared hit=30
+  ->  GroupAggregate  (cost=36.03..36.34 rows=14 width=192) (actual time=0.089..0.092 rows=5.00 loops=1)
+        Group Key: sf.finding_id, sr.name
+        Buffers: shared hit=24
+        ->  Sort  (cost=36.03..36.06 rows=14 width=169) (actual time=0.079..0.080 rows=14.00 loops=1)
+              Sort Key: sf.finding_id, sr.name, fef.field_name
+              Sort Method: quicksort  Memory: 27kB
+              Buffers: shared hit=24
+              ->  Nested Loop  (cost=2.00..35.76 rows=14 width=169) (actual time=0.062..0.068 rows=14.00 loops=1)
+                    Buffers: shared hit=21
+                    ->  Hash Join  (cost=1.70..13.88 rows=5 width=160) (actual time=0.056..0.059 rows=5.00 loops=1)
+                          Hash Cond: ((sf.source_id)::text = (sr.source_id)::text)
+                          Buffers: shared hit=10
+                          ->  Nested Loop  (cost=0.57..12.73 rows=5 width=133) (actual time=0.047..0.048 rows=5.00 loops=1)
+                                Buffers: shared hit=9
+                                ->  Index Only Scan using scan_sessions_pkey on scan_sessions ss  (cost=0.28..4.30 rows=1 width=8) (actual time=0.040..0.040 rows=1.00 loops=1)
+                                      Index Cond: (scan_session_id = 1)
+                                      Heap Fetches: 0
+                                      Index Searches: 1
+                                      Buffers: shared hit=6
+                                ->  Index Scan using idx_sf_scan_session on scan_findings sf  (cost=0.29..8.38 rows=5 width=133) (actual time=0.006..0.007 rows=5.00 loops=1)
+                                      Index Cond: (scan_session_id = 1)
+                                      Index Searches: 1
+                                      Buffers: shared hit=3
+                          ->  Hash  (cost=1.06..1.06 rows=6 width=50) (actual time=0.005..0.005 rows=6.00 loops=1)
+                                Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                                Buffers: shared hit=1
+                                ->  Seq Scan on source_registry sr  (cost=0.00..1.06 rows=6 width=50) (actual time=0.001..0.002 rows=6.00 loops=1)
+                                      Buffers: shared hit=1
+                    ->  Index Only Scan using finding_exposed_fields_pkey on finding_exposed_fields fef  (cost=0.29..4.35 rows=3 width=17) (actual time=0.001..0.001 rows=2.80 loops=5)
+                          Index Cond: (finding_id = sf.finding_id)
+                          Heap Fetches: 0
+                          Index Searches: 5
+                          Buffers: shared hit=11
+Planning:
+  Buffers: shared hit=378
+Planning Time: 0.840 ms
+Execution Time: 0.152 ms
+
+=== R3 run 2 ===
+Sort  (cost=36.61..36.64 rows=14 width=192) (actual time=0.088..0.088 rows=5.00 loops=1)
+  Sort Key: sf.breach_date DESC, sf.finding_id
+  Sort Method: quicksort  Memory: 26kB
+  Buffers: shared hit=30
+  ->  GroupAggregate  (cost=36.03..36.34 rows=14 width=192) (actual time=0.074..0.077 rows=5.00 loops=1)
+        Group Key: sf.finding_id, sr.name
+        Buffers: shared hit=24
+        ->  Sort  (cost=36.03..36.06 rows=14 width=169) (actual time=0.065..0.065 rows=14.00 loops=1)
+              Sort Key: sf.finding_id, sr.name, fef.field_name
+              Sort Method: quicksort  Memory: 27kB
+              Buffers: shared hit=24
+              ->  Nested Loop  (cost=2.00..35.76 rows=14 width=169) (actual time=0.048..0.053 rows=14.00 loops=1)
+                    Buffers: shared hit=21
+                    ->  Hash Join  (cost=1.70..13.88 rows=5 width=160) (actual time=0.043..0.045 rows=5.00 loops=1)
+                          Hash Cond: ((sf.source_id)::text = (sr.source_id)::text)
+                          Buffers: shared hit=10
+                          ->  Nested Loop  (cost=0.57..12.73 rows=5 width=133) (actual time=0.034..0.035 rows=5.00 loops=1)
+                                Buffers: shared hit=9
+                                ->  Index Only Scan using scan_sessions_pkey on scan_sessions ss  (cost=0.28..4.30 rows=1 width=8) (actual time=0.027..0.027 rows=1.00 loops=1)
+                                      Index Cond: (scan_session_id = 1)
+                                      Heap Fetches: 0
+                                      Index Searches: 1
+                                      Buffers: shared hit=6
+                                ->  Index Scan using idx_sf_scan_session on scan_findings sf  (cost=0.29..8.38 rows=5 width=133) (actual time=0.005..0.006 rows=5.00 loops=1)
+                                      Index Cond: (scan_session_id = 1)
+                                      Index Searches: 1
+                                      Buffers: shared hit=3
+                          ->  Hash  (cost=1.06..1.06 rows=6 width=50) (actual time=0.004..0.005 rows=6.00 loops=1)
+                                Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                                Buffers: shared hit=1
+                                ->  Seq Scan on source_registry sr  (cost=0.00..1.06 rows=6 width=50) (actual time=0.002..0.002 rows=6.00 loops=1)
+                                      Buffers: shared hit=1
+                    ->  Index Only Scan using finding_exposed_fields_pkey on finding_exposed_fields fef  (cost=0.29..4.35 rows=3 width=17) (actual time=0.001..0.001 rows=2.80 loops=5)
+                          Index Cond: (finding_id = sf.finding_id)
+                          Heap Fetches: 0
+                          Index Searches: 5
+                          Buffers: shared hit=11
+Planning:
+  Buffers: shared hit=378
+Planning Time: 0.764 ms
+Execution Time: 0.130 ms
+
+=== R3 run 3 ===
+Sort  (cost=36.61..36.64 rows=14 width=192) (actual time=0.082..0.083 rows=5.00 loops=1)
+  Sort Key: sf.breach_date DESC, sf.finding_id
+  Sort Method: quicksort  Memory: 26kB
+  Buffers: shared hit=30
+  ->  GroupAggregate  (cost=36.03..36.34 rows=14 width=192) (actual time=0.070..0.073 rows=5.00 loops=1)
+        Group Key: sf.finding_id, sr.name
+        Buffers: shared hit=24
+        ->  Sort  (cost=36.03..36.06 rows=14 width=169) (actual time=0.062..0.062 rows=14.00 loops=1)
+              Sort Key: sf.finding_id, sr.name, fef.field_name
+              Sort Method: quicksort  Memory: 27kB
+              Buffers: shared hit=24
+              ->  Nested Loop  (cost=2.00..35.76 rows=14 width=169) (actual time=0.046..0.051 rows=14.00 loops=1)
+                    Buffers: shared hit=21
+                    ->  Hash Join  (cost=1.70..13.88 rows=5 width=160) (actual time=0.041..0.043 rows=5.00 loops=1)
+                          Hash Cond: ((sf.source_id)::text = (sr.source_id)::text)
+                          Buffers: shared hit=10
+                          ->  Nested Loop  (cost=0.57..12.73 rows=5 width=133) (actual time=0.033..0.034 rows=5.00 loops=1)
+                                Buffers: shared hit=9
+                                ->  Index Only Scan using scan_sessions_pkey on scan_sessions ss  (cost=0.28..4.30 rows=1 width=8) (actual time=0.026..0.027 rows=1.00 loops=1)
+                                      Index Cond: (scan_session_id = 1)
+                                      Heap Fetches: 0
+                                      Index Searches: 1
+                                      Buffers: shared hit=6
+                                ->  Index Scan using idx_sf_scan_session on scan_findings sf  (cost=0.29..8.38 rows=5 width=133) (actual time=0.005..0.005 rows=5.00 loops=1)
+                                      Index Cond: (scan_session_id = 1)
+                                      Index Searches: 1
+                                      Buffers: shared hit=3
+                          ->  Hash  (cost=1.06..1.06 rows=6 width=50) (actual time=0.004..0.005 rows=6.00 loops=1)
+                                Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                                Buffers: shared hit=1
+                                ->  Seq Scan on source_registry sr  (cost=0.00..1.06 rows=6 width=50) (actual time=0.001..0.002 rows=6.00 loops=1)
+                                      Buffers: shared hit=1
+                    ->  Index Only Scan using finding_exposed_fields_pkey on finding_exposed_fields fef  (cost=0.29..4.35 rows=3 width=17) (actual time=0.001..0.001 rows=2.80 loops=5)
+                          Index Cond: (finding_id = sf.finding_id)
+                          Heap Fetches: 0
+                          Index Searches: 5
+                          Buffers: shared hit=11
+Planning:
+  Buffers: shared hit=378
+Planning Time: 0.741 ms
+Execution Time: 0.128 ms

@@ -1,0 +1,74 @@
+-- R8 -- READ : Scan execution summary grouped by scan status and verification attempt tier
+-- run1: 1.917 ms | run2: 1.889 ms | run3: 1.895 ms | avg: 1.900 ms | median: 1.895 ms
+
+=== R8 run 1 ===
+Sort  (cost=555.56..555.63 rows=30 width=35) (actual time=1.879..1.879 rows=14.00 loops=1)
+  Sort Key: (count(ss.scan_session_id)) DESC, ss.status
+  Sort Method: quicksort  Memory: 25kB
+  Buffers: shared hit=247
+  ->  HashAggregate  (cost=554.52..554.82 rows=30 width=35) (actual time=1.869..1.870 rows=14.00 loops=1)
+        Group Key: ss.status, vs.attempts
+        Batches: 1  Memory Usage: 32kB
+        Buffers: shared hit=241
+        ->  Hash Join  (cost=272.50..454.52 rows=8000 width=27) (actual time=0.550..1.316 rows=8000.00 loops=1)
+              Hash Cond: (ss.verification_session_id = vs.verification_session_id)
+              Buffers: shared hit=241
+              ->  Seq Scan on scan_sessions ss  (cost=0.00..161.00 rows=8000 width=33) (actual time=0.003..0.218 rows=8000.00 loops=1)
+                    Buffers: shared hit=81
+              ->  Hash  (cost=210.00..210.00 rows=5000 width=10) (actual time=0.539..0.539 rows=5000.00 loops=1)
+                    Buckets: 8192  Batches: 1  Memory Usage: 299kB
+                    Buffers: shared hit=160
+                    ->  Seq Scan on verification_sessions vs  (cost=0.00..210.00 rows=5000 width=10) (actual time=0.002..0.369 rows=5000.00 loops=1)
+                          Buffers: shared hit=160
+Planning:
+  Buffers: shared hit=263
+Planning Time: 0.426 ms
+Execution Time: 1.917 ms
+
+=== R8 run 2 ===
+Sort  (cost=555.56..555.63 rows=30 width=35) (actual time=1.854..1.855 rows=14.00 loops=1)
+  Sort Key: (count(ss.scan_session_id)) DESC, ss.status
+  Sort Method: quicksort  Memory: 25kB
+  Buffers: shared hit=247
+  ->  HashAggregate  (cost=554.52..554.82 rows=30 width=35) (actual time=1.845..1.846 rows=14.00 loops=1)
+        Group Key: ss.status, vs.attempts
+        Batches: 1  Memory Usage: 32kB
+        Buffers: shared hit=241
+        ->  Hash Join  (cost=272.50..454.52 rows=8000 width=27) (actual time=0.547..1.292 rows=8000.00 loops=1)
+              Hash Cond: (ss.verification_session_id = vs.verification_session_id)
+              Buffers: shared hit=241
+              ->  Seq Scan on scan_sessions ss  (cost=0.00..161.00 rows=8000 width=33) (actual time=0.003..0.204 rows=8000.00 loops=1)
+                    Buffers: shared hit=81
+              ->  Hash  (cost=210.00..210.00 rows=5000 width=10) (actual time=0.537..0.537 rows=5000.00 loops=1)
+                    Buckets: 8192  Batches: 1  Memory Usage: 299kB
+                    Buffers: shared hit=160
+                    ->  Seq Scan on verification_sessions vs  (cost=0.00..210.00 rows=5000 width=10) (actual time=0.002..0.353 rows=5000.00 loops=1)
+                          Buffers: shared hit=160
+Planning:
+  Buffers: shared hit=263
+Planning Time: 0.415 ms
+Execution Time: 1.889 ms
+
+=== R8 run 3 ===
+Sort  (cost=555.56..555.63 rows=30 width=35) (actual time=1.860..1.861 rows=14.00 loops=1)
+  Sort Key: (count(ss.scan_session_id)) DESC, ss.status
+  Sort Method: quicksort  Memory: 25kB
+  Buffers: shared hit=247
+  ->  HashAggregate  (cost=554.52..554.82 rows=30 width=35) (actual time=1.850..1.852 rows=14.00 loops=1)
+        Group Key: ss.status, vs.attempts
+        Batches: 1  Memory Usage: 32kB
+        Buffers: shared hit=241
+        ->  Hash Join  (cost=272.50..454.52 rows=8000 width=27) (actual time=0.540..1.296 rows=8000.00 loops=1)
+              Hash Cond: (ss.verification_session_id = vs.verification_session_id)
+              Buffers: shared hit=241
+              ->  Seq Scan on scan_sessions ss  (cost=0.00..161.00 rows=8000 width=33) (actual time=0.003..0.214 rows=8000.00 loops=1)
+                    Buffers: shared hit=81
+              ->  Hash  (cost=210.00..210.00 rows=5000 width=10) (actual time=0.530..0.530 rows=5000.00 loops=1)
+                    Buckets: 8192  Batches: 1  Memory Usage: 299kB
+                    Buffers: shared hit=160
+                    ->  Seq Scan on verification_sessions vs  (cost=0.00..210.00 rows=5000 width=10) (actual time=0.002..0.360 rows=5000.00 loops=1)
+                          Buffers: shared hit=160
+Planning:
+  Buffers: shared hit=263
+Planning Time: 0.404 ms
+Execution Time: 1.895 ms

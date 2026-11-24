@@ -1,0 +1,32 @@
+-- W1 -- WRITE : Create a new OTP verification session (startVerification)
+-- run1: 0.181 ms | run2: 0.145 ms | run3: 0.150 ms | avg: 0.159 ms | median: 0.150 ms
+
+=== W1 run 1 ===
+Insert on verification_sessions  (cost=0.00..0.02 rows=1 width=817) (actual time=0.170..0.170 rows=1.00 loops=1)
+  Buffers: shared hit=107
+  ->  Result  (cost=0.00..0.02 rows=1 width=817) (actual time=0.021..0.021 rows=1.00 loops=1)
+        Buffers: shared hit=15
+Planning:
+  Buffers: shared hit=9
+Planning Time: 0.040 ms
+Execution Time: 0.181 ms
+
+=== W1 run 2 ===
+Insert on verification_sessions  (cost=0.00..0.02 rows=1 width=817) (actual time=0.134..0.135 rows=1.00 loops=1)
+  Buffers: shared hit=106
+  ->  Result  (cost=0.00..0.02 rows=1 width=817) (actual time=0.018..0.018 rows=1.00 loops=1)
+        Buffers: shared hit=15
+Planning:
+  Buffers: shared hit=9
+Planning Time: 0.042 ms
+Execution Time: 0.145 ms
+
+=== W1 run 3 ===
+Insert on verification_sessions  (cost=0.00..0.02 rows=1 width=817) (actual time=0.139..0.139 rows=1.00 loops=1)
+  Buffers: shared hit=106
+  ->  Result  (cost=0.00..0.02 rows=1 width=817) (actual time=0.018..0.018 rows=1.00 loops=1)
+        Buffers: shared hit=15
+Planning:
+  Buffers: shared hit=9
+Planning Time: 0.043 ms
+Execution Time: 0.150 ms

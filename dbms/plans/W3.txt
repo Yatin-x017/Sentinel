@@ -1,0 +1,41 @@
+-- W3 -- WRITE : Confirm OTP verification session, store session token hash, and extend expiry by 15 minutes (confirmVerification success)
+-- run1: 0.143 ms | run2: 0.131 ms | run3: 0.165 ms | avg: 0.146 ms | median: 0.143 ms
+
+=== W3 run 1 ===
+Update on verification_sessions  (cost=0.28..8.31 rows=1 width=275) (actual time=0.097..0.098 rows=1.00 loops=1)
+  Buffers: shared hit=30
+  ->  Index Scan using verification_sessions_pkey on verification_sessions  (cost=0.28..8.31 rows=1 width=275) (actual time=0.016..0.018 rows=1.00 loops=1)
+        Index Cond: (verification_session_id = 4501)
+        Filter: ((NOT verified) AND (attempts < 5) AND (expires_at > now()))
+        Index Searches: 1
+        Buffers: shared hit=8
+Planning:
+  Buffers: shared hit=128
+Planning Time: 0.255 ms
+Execution Time: 0.143 ms
+
+=== W3 run 2 ===
+Update on verification_sessions  (cost=0.28..8.31 rows=1 width=275) (actual time=0.089..0.091 rows=1.00 loops=1)
+  Buffers: shared hit=30
+  ->  Index Scan using verification_sessions_pkey on verification_sessions  (cost=0.28..8.31 rows=1 width=275) (actual time=0.015..0.017 rows=1.00 loops=1)
+        Index Cond: (verification_session_id = 4501)
+        Filter: ((NOT verified) AND (attempts < 5) AND (expires_at > now()))
+        Index Searches: 1
+        Buffers: shared hit=8
+Planning:
+  Buffers: shared hit=128
+Planning Time: 0.232 ms
+Execution Time: 0.131 ms
+
+=== W3 run 3 ===
+Update on verification_sessions  (cost=0.28..8.31 rows=1 width=275) (actual time=0.113..0.115 rows=1.00 loops=1)
+  Buffers: shared hit=30
+  ->  Index Scan using verification_sessions_pkey on verification_sessions  (cost=0.28..8.31 rows=1 width=275) (actual time=0.017..0.019 rows=1.00 loops=1)
+        Index Cond: (verification_session_id = 4501)
+        Filter: ((NOT verified) AND (attempts < 5) AND (expires_at > now()))
+        Index Searches: 1
+        Buffers: shared hit=8
+Planning:
+  Buffers: shared hit=128
+Planning Time: 0.294 ms
+Execution Time: 0.165 ms

@@ -1,0 +1,140 @@
+-- R2 -- READ : Get scan status, per-source execution statuses, and finding count (getScanStatus polling)
+-- run1: 0.135 ms | run2: 0.122 ms | run3: 0.119 ms | avg: 0.125 ms | median: 0.122 ms
+
+=== R2 run 1 ===
+Sort  (cost=33.99..34.00 rows=5 width=112) (actual time=0.080..0.081 rows=5.00 loops=1)
+  Sort Key: sr.source_id
+  Sort Method: quicksort  Memory: 25kB
+  Buffers: shared hit=19
+  ->  GroupAggregate  (cost=33.81..33.93 rows=5 width=112) (actual time=0.066..0.068 rows=5.00 loops=1)
+        Group Key: sr.name, sss.status, sss.latency_ms, sss.error_message
+        Buffers: shared hit=16
+        ->  Sort  (cost=33.81..33.82 rows=5 width=112) (actual time=0.062..0.062 rows=5.00 loops=1)
+              Sort Key: sr.name, sss.status, sss.latency_ms, sss.error_message
+              Sort Method: quicksort  Memory: 25kB
+              Buffers: shared hit=16
+              ->  Nested Loop  (cost=9.01..33.75 rows=5 width=112) (actual time=0.042..0.047 rows=5.00 loops=1)
+                    Join Filter: ((sss.source_id)::text = (sr.source_id)::text)
+                    Rows Removed by Join Filter: 15
+                    Buffers: shared hit=13
+                    ->  Hash Left Join  (cost=8.72..17.96 rows=6 width=75) (actual time=0.030..0.033 rows=6.00 loops=1)
+                          Hash Cond: ((sr.source_id)::text = (sf.source_id)::text)
+                          Buffers: shared hit=10
+                          ->  Nested Loop  (cost=0.28..9.42 rows=6 width=67) (actual time=0.011..0.013 rows=6.00 loops=1)
+                                Buffers: shared hit=7
+                                ->  Index Scan using scan_sessions_pkey on scan_sessions ss  (cost=0.28..8.30 rows=1 width=17) (actual time=0.008..0.009 rows=1.00 loops=1)
+                                      Index Cond: (scan_session_id = 1)
+                                      Index Searches: 1
+                                      Buffers: shared hit=6
+                                ->  Seq Scan on source_registry sr  (cost=0.00..1.06 rows=6 width=50) (actual time=0.002..0.002 rows=6.00 loops=1)
+                                      Buffers: shared hit=1
+                          ->  Hash  (cost=8.38..8.38 rows=5 width=39) (actual time=0.015..0.015 rows=5.00 loops=1)
+                                Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                                Buffers: shared hit=3
+                                ->  Index Scan using idx_sf_scan_session on scan_findings sf  (cost=0.29..8.38 rows=5 width=39) (actual time=0.010..0.011 rows=5.00 loops=1)
+                                      Index Cond: (scan_session_id = 1)
+                                      Index Searches: 1
+                                      Buffers: shared hit=3
+                    ->  Materialize  (cost=0.29..15.40 rows=5 width=68) (actual time=0.002..0.002 rows=3.33 loops=6)
+                          Storage: Memory  Maximum Storage: 17kB
+                          Buffers: shared hit=3
+                          ->  Index Scan using scan_source_statuses_pkey on scan_source_statuses sss  (cost=0.29..15.38 rows=5 width=68) (actual time=0.007..0.008 rows=5.00 loops=1)
+                                Index Cond: (scan_session_id = 1)
+                                Index Searches: 1
+                                Buffers: shared hit=3
+Planning:
+  Buffers: shared hit=336
+Planning Time: 0.946 ms
+Execution Time: 0.135 ms
+
+=== R2 run 2 ===
+Sort  (cost=33.99..34.00 rows=5 width=112) (actual time=0.071..0.072 rows=5.00 loops=1)
+  Sort Key: sr.source_id
+  Sort Method: quicksort  Memory: 25kB
+  Buffers: shared hit=19
+  ->  GroupAggregate  (cost=33.81..33.93 rows=5 width=112) (actual time=0.058..0.060 rows=5.00 loops=1)
+        Group Key: sr.name, sss.status, sss.latency_ms, sss.error_message
+        Buffers: shared hit=16
+        ->  Sort  (cost=33.81..33.82 rows=5 width=112) (actual time=0.054..0.055 rows=5.00 loops=1)
+              Sort Key: sr.name, sss.status, sss.latency_ms, sss.error_message
+              Sort Method: quicksort  Memory: 25kB
+              Buffers: shared hit=16
+              ->  Nested Loop  (cost=9.01..33.75 rows=5 width=112) (actual time=0.036..0.041 rows=5.00 loops=1)
+                    Join Filter: ((sss.source_id)::text = (sr.source_id)::text)
+                    Rows Removed by Join Filter: 15
+                    Buffers: shared hit=13
+                    ->  Hash Left Join  (cost=8.72..17.96 rows=6 width=75) (actual time=0.026..0.028 rows=6.00 loops=1)
+                          Hash Cond: ((sr.source_id)::text = (sf.source_id)::text)
+                          Buffers: shared hit=10
+                          ->  Nested Loop  (cost=0.28..9.42 rows=6 width=67) (actual time=0.011..0.012 rows=6.00 loops=1)
+                                Buffers: shared hit=7
+                                ->  Index Scan using scan_sessions_pkey on scan_sessions ss  (cost=0.28..8.30 rows=1 width=17) (actual time=0.009..0.009 rows=1.00 loops=1)
+                                      Index Cond: (scan_session_id = 1)
+                                      Index Searches: 1
+                                      Buffers: shared hit=6
+                                ->  Seq Scan on source_registry sr  (cost=0.00..1.06 rows=6 width=50) (actual time=0.002..0.002 rows=6.00 loops=1)
+                                      Buffers: shared hit=1
+                          ->  Hash  (cost=8.38..8.38 rows=5 width=39) (actual time=0.010..0.010 rows=5.00 loops=1)
+                                Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                                Buffers: shared hit=3
+                                ->  Index Scan using idx_sf_scan_session on scan_findings sf  (cost=0.29..8.38 rows=5 width=39) (actual time=0.006..0.007 rows=5.00 loops=1)
+                                      Index Cond: (scan_session_id = 1)
+                                      Index Searches: 1
+                                      Buffers: shared hit=3
+                    ->  Materialize  (cost=0.29..15.40 rows=5 width=68) (actual time=0.001..0.002 rows=3.33 loops=6)
+                          Storage: Memory  Maximum Storage: 17kB
+                          Buffers: shared hit=3
+                          ->  Index Scan using scan_source_statuses_pkey on scan_source_statuses sss  (cost=0.29..15.38 rows=5 width=68) (actual time=0.006..0.007 rows=5.00 loops=1)
+                                Index Cond: (scan_session_id = 1)
+                                Index Searches: 1
+                                Buffers: shared hit=3
+Planning:
+  Buffers: shared hit=336
+Planning Time: 0.766 ms
+Execution Time: 0.122 ms
+
+=== R2 run 3 ===
+Sort  (cost=33.99..34.00 rows=5 width=112) (actual time=0.067..0.068 rows=5.00 loops=1)
+  Sort Key: sr.source_id
+  Sort Method: quicksort  Memory: 25kB
+  Buffers: shared hit=19
+  ->  GroupAggregate  (cost=33.81..33.93 rows=5 width=112) (actual time=0.055..0.057 rows=5.00 loops=1)
+        Group Key: sr.name, sss.status, sss.latency_ms, sss.error_message
+        Buffers: shared hit=16
+        ->  Sort  (cost=33.81..33.82 rows=5 width=112) (actual time=0.050..0.051 rows=5.00 loops=1)
+              Sort Key: sr.name, sss.status, sss.latency_ms, sss.error_message
+              Sort Method: quicksort  Memory: 25kB
+              Buffers: shared hit=16
+              ->  Nested Loop  (cost=9.01..33.75 rows=5 width=112) (actual time=0.034..0.038 rows=5.00 loops=1)
+                    Join Filter: ((sss.source_id)::text = (sr.source_id)::text)
+                    Rows Removed by Join Filter: 15
+                    Buffers: shared hit=13
+                    ->  Hash Left Join  (cost=8.72..17.96 rows=6 width=75) (actual time=0.024..0.026 rows=6.00 loops=1)
+                          Hash Cond: ((sr.source_id)::text = (sf.source_id)::text)
+                          Buffers: shared hit=10
+                          ->  Nested Loop  (cost=0.28..9.42 rows=6 width=67) (actual time=0.010..0.011 rows=6.00 loops=1)
+                                Buffers: shared hit=7
+                                ->  Index Scan using scan_sessions_pkey on scan_sessions ss  (cost=0.28..8.30 rows=1 width=17) (actual time=0.007..0.008 rows=1.00 loops=1)
+                                      Index Cond: (scan_session_id = 1)
+                                      Index Searches: 1
+                                      Buffers: shared hit=6
+                                ->  Seq Scan on source_registry sr  (cost=0.00..1.06 rows=6 width=50) (actual time=0.002..0.002 rows=6.00 loops=1)
+                                      Buffers: shared hit=1
+                          ->  Hash  (cost=8.38..8.38 rows=5 width=39) (actual time=0.010..0.010 rows=5.00 loops=1)
+                                Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                                Buffers: shared hit=3
+                                ->  Index Scan using idx_sf_scan_session on scan_findings sf  (cost=0.29..8.38 rows=5 width=39) (actual time=0.006..0.006 rows=5.00 loops=1)
+                                      Index Cond: (scan_session_id = 1)
+                                      Index Searches: 1
+                                      Buffers: shared hit=3
+                    ->  Materialize  (cost=0.29..15.40 rows=5 width=68) (actual time=0.001..0.002 rows=3.33 loops=6)
+                          Storage: Memory  Maximum Storage: 17kB
+                          Buffers: shared hit=3
+                          ->  Index Scan using scan_source_statuses_pkey on scan_source_statuses sss  (cost=0.29..15.38 rows=5 width=68) (actual time=0.005..0.006 rows=5.00 loops=1)
+                                Index Cond: (scan_session_id = 1)
+                                Index Searches: 1
+                                Buffers: shared hit=3
+Planning:
+  Buffers: shared hit=336
+Planning Time: 0.722 ms
+Execution Time: 0.119 ms

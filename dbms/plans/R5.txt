@@ -1,0 +1,80 @@
+-- R5 -- READ : Fetch enabled threat-intelligence sources with timeout and rate-limit configuration (runScanPipeline)
+-- run1: 6.361 ms | run2: 6.341 ms | run3: 6.326 ms | avg: 6.343 ms | median: 6.341 ms
+
+=== R5 run 1 ===
+Sort  (cost=1128.07..1128.08 rows=5 width=67) (actual time=6.323..6.324 rows=5.00 loops=1)
+  Sort Key: sr.source_id
+  Sort Method: quicksort  Memory: 25kB
+  Buffers: shared hit=385
+  ->  HashAggregate  (cost=1127.96..1128.01 rows=5 width=67) (actual time=6.310..6.311 rows=5.00 loops=1)
+        Group Key: sr.name
+        Batches: 1  Memory Usage: 32kB
+        Buffers: shared hit=382
+        ->  Hash Right Join  (cost=1.12..961.29 rows=33333 width=67) (actual time=0.012..3.995 rows=40000.00 loops=1)
+              Hash Cond: ((sss.source_id)::text = (sr.source_id)::text)
+              Buffers: shared hit=382
+              ->  Seq Scan on scan_source_statuses sss  (cost=0.00..781.00 rows=40000 width=31) (actual time=0.002..1.044 rows=40000.00 loops=1)
+                    Buffers: shared hit=381
+              ->  Hash  (cost=1.06..1.06 rows=5 width=59) (actual time=0.006..0.006 rows=5.00 loops=1)
+                    Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                    Buffers: shared hit=1
+                    ->  Seq Scan on source_registry sr  (cost=0.00..1.06 rows=5 width=59) (actual time=0.003..0.003 rows=5.00 loops=1)
+                          Filter: enabled
+                          Rows Removed by Filter: 1
+                          Buffers: shared hit=1
+Planning:
+  Buffers: shared hit=252
+Planning Time: 0.350 ms
+Execution Time: 6.361 ms
+
+=== R5 run 2 ===
+Sort  (cost=1128.07..1128.08 rows=5 width=67) (actual time=6.305..6.306 rows=5.00 loops=1)
+  Sort Key: sr.source_id
+  Sort Method: quicksort  Memory: 25kB
+  Buffers: shared hit=385
+  ->  HashAggregate  (cost=1127.96..1128.01 rows=5 width=67) (actual time=6.291..6.292 rows=5.00 loops=1)
+        Group Key: sr.name
+        Batches: 1  Memory Usage: 32kB
+        Buffers: shared hit=382
+        ->  Hash Right Join  (cost=1.12..961.29 rows=33333 width=67) (actual time=0.013..3.989 rows=40000.00 loops=1)
+              Hash Cond: ((sss.source_id)::text = (sr.source_id)::text)
+              Buffers: shared hit=382
+              ->  Seq Scan on scan_source_statuses sss  (cost=0.00..781.00 rows=40000 width=31) (actual time=0.002..1.060 rows=40000.00 loops=1)
+                    Buffers: shared hit=381
+              ->  Hash  (cost=1.06..1.06 rows=5 width=59) (actual time=0.007..0.007 rows=5.00 loops=1)
+                    Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                    Buffers: shared hit=1
+                    ->  Seq Scan on source_registry sr  (cost=0.00..1.06 rows=5 width=59) (actual time=0.003..0.004 rows=5.00 loops=1)
+                          Filter: enabled
+                          Rows Removed by Filter: 1
+                          Buffers: shared hit=1
+Planning:
+  Buffers: shared hit=252
+Planning Time: 0.339 ms
+Execution Time: 6.341 ms
+
+=== R5 run 3 ===
+Sort  (cost=1128.07..1128.08 rows=5 width=67) (actual time=6.293..6.294 rows=5.00 loops=1)
+  Sort Key: sr.source_id
+  Sort Method: quicksort  Memory: 25kB
+  Buffers: shared hit=385
+  ->  HashAggregate  (cost=1127.96..1128.01 rows=5 width=67) (actual time=6.281..6.282 rows=5.00 loops=1)
+        Group Key: sr.name
+        Batches: 1  Memory Usage: 32kB
+        Buffers: shared hit=382
+        ->  Hash Right Join  (cost=1.12..961.29 rows=33333 width=67) (actual time=0.011..3.958 rows=40000.00 loops=1)
+              Hash Cond: ((sss.source_id)::text = (sr.source_id)::text)
+              Buffers: shared hit=382
+              ->  Seq Scan on scan_source_statuses sss  (cost=0.00..781.00 rows=40000 width=31) (actual time=0.002..1.006 rows=40000.00 loops=1)
+                    Buffers: shared hit=381
+              ->  Hash  (cost=1.06..1.06 rows=5 width=59) (actual time=0.005..0.006 rows=5.00 loops=1)
+                    Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                    Buffers: shared hit=1
+                    ->  Seq Scan on source_registry sr  (cost=0.00..1.06 rows=5 width=59) (actual time=0.003..0.003 rows=5.00 loops=1)
+                          Filter: enabled
+                          Rows Removed by Filter: 1
+                          Buffers: shared hit=1
+Planning:
+  Buffers: shared hit=252
+Planning Time: 0.309 ms
+Execution Time: 6.326 ms
